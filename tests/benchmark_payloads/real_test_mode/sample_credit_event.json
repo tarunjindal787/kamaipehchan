@@ -1,0 +1,50 @@
+{
+  "entity": "event",
+  "account_id": "acc_test_dummy",
+  "event": "payment.captured",
+  "contains": [
+    "payment"
+  ],
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_TSYntBXFfpM6Xq",
+        "entity": "payment",
+        "amount": 50000,
+        "currency": "INR",
+        "status": "captured",
+        "order_id": "order_TSYlaYghtOxQyu",
+        "invoice_id": null,
+        "international": false,
+        "method": "netbanking",
+        "amount_refunded": 0,
+        "refund_status": null,
+        "captured": true,
+        "description": "#TSYkTArzAN9AGy",
+        "card_id": null,
+        "bank": "UTBI",
+        "wallet": null,
+        "vpa": null,
+        "email": "void@razorpay.com",
+        "contact": "+917877722029",
+        "notes": {
+          "gig_type": "delivery",
+          "worker_id": "WRK-001",
+          "worker_name": "Test Worker 1"
+        },
+        "fee": 1298,
+        "tax": 198,
+        "error_code": null,
+        "error_description": null,
+        "error_source": null,
+        "error_step": null,
+        "error_reason": null,
+        "acquirer_data": {
+          "bank_transaction_id": "7353849"
+        },
+        "created_at": 1787346001
+      }
+    }
+  },
+  "created_at": 1787346002
+}
