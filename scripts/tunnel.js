@@ -1,10 +1,15 @@
 const ngrok = require('@ngrok/ngrok');
+require('dotenv').config();
 
 (async function () {
   try {
+    if (!process.env.NGROK_AUTHTOKEN) {
+      throw new Error('NGROK_AUTHTOKEN is not set. Add it to your .env file.');
+    }
+
     const listener = await ngrok.forward({
       addr: 3000,
-      authtoken: process.env.NGROK_AUTHTOKEN || '3IExyH0IV0r3Qgb6xiLTguyEypM_AMKpKASDqPafBz2g6wbN',
+      authtoken: process.env.NGROK_AUTHTOKEN,
     });
 
     console.log(`NGROK_TUNNEL_URL=${listener.url()}`);
