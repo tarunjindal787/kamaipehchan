@@ -22,7 +22,9 @@ The system processes incoming financial events through a multi-stage pipeline:
 
 ## Status
 
-**Day 1** - Webhook receiver live and verified against Razorpay test mode events. Classifier and scoring engine in progress.
+**Day 1** - Webhook receiver live and verified against Razorpay test mode events.
+
+**Day 2** - Deterministic classifier (`src/classifier/`) implemented and unit-tested against `tests/benchmark_payloads/synthetic/seed_payloads.json`: exact-match note rules classify unambiguous transactions (e.g. `"salary"` -> `recurring_wage`), everything else routes to needs_review. LLM-assisted fallback (`src/integrations/llm/llmClassifier.js`) is scaffolded but not implemented - it holds ambiguous transactions at `needs_review` until `LLM_API_KEY` is configured and the real call is wired in. Not yet wired into the live webhook handler (`src/webhooks/razorpayWebhookHandler.js`), pending confirmation of the real `virtual_account.credited` payload schema. Scoring engine not started.
 
 ---
 
