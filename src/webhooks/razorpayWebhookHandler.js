@@ -42,10 +42,11 @@ async function razorpayWebhookHandler(req, res) {
     classification = await classifyAndRecord(normalized);
     console.log('[webhook] Classification:', JSON.stringify(classification, null, 2));
   } catch (err) {
-    // normalizeTransaction targets the virtual_account.credited shape; a
-    // payment.captured event (or any event missing virtual_account_id)
-    // normalizes to rail_id: null, which recordTransaction rejects. Fail
-    // loud in the logs but still respond, rather than hanging the request.
+    // normalizeTransaction handles both virtual_account.credited and
+    // payment.captured shapes, but an event with neither virtual_account_id
+    // nor reference_id still normalizes to rail_id: null, which
+    // recordTransaction rejects. Fail loud in the logs but still respond,
+    // rather than hanging the request.
     console.error('[webhook] Classification failed:', err.message);
     classification = { error: 'classification_failed', reason: err.message };
   }

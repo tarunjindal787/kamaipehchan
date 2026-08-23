@@ -37,7 +37,7 @@ Below is the verified schema structure received from Razorpay upon a successful 
 | `amount_refunded` | `integer` | `0` | Refunded amount in paise |
 | `refund_status` | `string \| null` | `null` | Status of refund if any |
 | `captured` | `boolean` | `true` | Boolean flag confirming capture |
-| `description` | `string` | `"#TSYkTArzAN9AGy"` | Payment description or payment link reference |
+| `description` | `string` | `"#TSYkTArzAN9AGy"` | Razorpay's auto-generated receipt tag when no description is supplied. **Not** a Payment Link `reference_id` - that is a distinct field, not present anywhere in this sample, and its presence/behavior in a real webhook is still unconfirmed. |
 | `card_id` | `string \| null` | `null` | Card ID if method was card |
 | `bank` | `string \| null` | `"UTBI"` | Bank code if netbanking / virtual account transfer |
 | `wallet` | `string \| null` | `null` | Wallet provider if wallet method |
