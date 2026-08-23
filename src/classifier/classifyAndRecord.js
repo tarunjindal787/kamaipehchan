@@ -7,7 +7,11 @@ async function classifyAndRecord(transaction) {
   const classification = await classifyTransaction(transaction);
   const gated = applyGate(classification);
 
-  recordTransaction(transaction); // record AFTER classifying, not before
+  recordTransaction({
+    ...transaction,
+    needs_review: gated.needs_review,
+    label: gated.needs_review ? null : gated.label,
+  });
 
   if (gated.needs_review) {
     await sendConfirmationPrompt(transaction, gated);

@@ -2,15 +2,23 @@
 // Replace with a persistent store (DB) beyond the demo stage - this
 // resets on server restart and won't work across multiple instances.
 const transactionsByRail = new Map();
+const transactionsByWorker = new Map();
 
 function recordTransaction(transaction) {
   if (!transaction?.rail_id) {
     throw new Error('recordTransaction requires a transaction with rail_id');
   }
 
-  const history = transactionsByRail.get(transaction.rail_id) || [];
-  history.push(transaction);
-  transactionsByRail.set(transaction.rail_id, history);
+  const railHistory = transactionsByRail.get(transaction.rail_id) || [];
+  railHistory.push(transaction);
+  transactionsByRail.set(transaction.rail_id, railHistory);
+
+  if (transaction.worker_id) {
+    const workerHistory = transactionsByWorker.get(transaction.worker_id) || [];
+    workerHistory.push(transaction);
+    transactionsByWorker.set(transaction.worker_id, workerHistory);
+  }
+
   return transaction;
 }
 
@@ -18,4 +26,8 @@ function getHistory(rail_id) {
   return transactionsByRail.get(rail_id) || [];
 }
 
-module.exports = { recordTransaction, getHistory };
+function getTransactionsByWorker(worker_id) {
+  return transactionsByWorker.get(worker_id) || [];
+}
+
+module.exports = { recordTransaction, getHistory, getTransactionsByWorker };
