@@ -1,9 +1,11 @@
 const { verifyWebhookSignature } = require('../integrations/razorpay/webhookVerify');
 const { isDuplicateEvent } = require('./eventDedup');
 const { attributePaymentFromRail } = require('../worker/attributionService');
+const { normalizeTransaction } = require('./normalize');
+const { classifyAndRecord } = require('../classifier/classifyAndRecord');
 const config = require('../config/env');
 
-function razorpayWebhookHandler(req, res) {
+async function razorpayWebhookHandler(req, res) {
   const signature = req.headers['x-razorpay-signature'];
   const rawBody = req.rawBody;
 
@@ -34,11 +36,24 @@ function razorpayWebhookHandler(req, res) {
     console.log(`[attribution] Rail-verified: Worker=${attribution.workerId}, Employer=${attribution.employerRef}, Amount=Rs.${attribution.amountInr}`);
   }
 
-  // TODO (Day 2+): hand off `event` and `attribution` to classifier module (Module 1)
+  let classification;
+  try {
+    const normalized = normalizeTransaction(event);
+    classification = await classifyAndRecord(normalized);
+    console.log('[webhook] Classification:', JSON.stringify(classification, null, 2));
+  } catch (err) {
+    // normalizeTransaction targets the virtual_account.credited shape; a
+    // payment.captured event (or any event missing virtual_account_id)
+    // normalizes to rail_id: null, which recordTransaction rejects. Fail
+    // loud in the logs but still respond, rather than hanging the request.
+    console.error('[webhook] Classification failed:', err.message);
+    classification = { error: 'classification_failed', reason: err.message };
+  }
 
   return res.status(200).json({
     status: 'received',
     attribution: attribution.attributed ? attribution : undefined,
+    classification,
   });
 }
 
