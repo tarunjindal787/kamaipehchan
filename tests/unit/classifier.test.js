@@ -1,13 +1,19 @@
 const assert = require('assert');
 const { classifyTransaction, CLASSIFIER_LABELS } = require('../../src/classifier');
+const { recordTransaction } = require('../../src/db/transactionStore');
 const seedPayloads = require('../benchmark_payloads/synthetic/seed_payloads.json');
 
 console.log('Running unit test: tests/unit/classifier.test.js');
 
 async function run() {
+  const counts = { history_match: 0, note_match: 0, no_history: 0, amount_mismatch: 0 };
+
   for (const seed of seedPayloads) {
-    const transaction = seed.payload.payload;
-    const result = await classifyTransaction(transaction);
+    for (const priorTransaction of seed.history) {
+      recordTransaction(priorTransaction);
+    }
+
+    const result = await classifyTransaction(seed.transaction);
 
     if (seed.expected_path === 'deterministic') {
       assert.strictEqual(
@@ -35,11 +41,17 @@ async function run() {
         `${seed.id}: expected needs_review without LLM configured`
       );
     }
+
+    const category = Object.keys(counts).find((key) => seed.id.startsWith(key));
+    if (category) counts[category] += 1;
   }
 
   console.log(
-    `✅ Unit test passed: ${seedPayloads.length} classifier fixtures verified ` +
-      '(10 deterministic, 10 correctly routed away from deterministic).'
+    `✅ Unit test passed: ${seedPayloads.length} classifier fixtures verified - ` +
+      `${counts.history_match} same-rail-history matches, ` +
+      `${counts.note_match} note-based matches, ` +
+      `${counts.no_history} no-history fallthroughs, ` +
+      `${counts.amount_mismatch} amount-mismatch fallthroughs.`
   );
 }
 

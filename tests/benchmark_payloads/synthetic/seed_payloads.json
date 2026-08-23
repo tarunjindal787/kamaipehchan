@@ -1,362 +1,479 @@
 [
   {
-    "id": "clean_1",
+    "id": "history_match_1",
     "label": "recurring_wage",
     "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1001_employerA",
-        "worker_id": "worker_1001",
-        "employer_ref": "employer_A",
+    "history": [
+      {
+        "rail_id": "va_worker1001_employerA",
         "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_1@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-02-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_2",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1002_employerA",
-        "worker_id": "worker_1002",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_2@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-03-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_3",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1003_employerA",
-        "worker_id": "worker_1003",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_3@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-04-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_4",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1004_employerA",
-        "worker_id": "worker_1004",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_4@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-05-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_5",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1005_employerA",
-        "worker_id": "worker_1005",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_5@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-06-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_6",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1006_employerA",
-        "worker_id": "worker_1006",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_6@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-01-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_7",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1007_employerA",
-        "worker_id": "worker_1007",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_7@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-02-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_8",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1008_employerA",
-        "worker_id": "worker_1008",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_8@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-03-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_9",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1009_employerA",
-        "worker_id": "worker_1009",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_9@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-04-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "clean_10",
-    "label": "recurring_wage",
-    "expected_path": "deterministic",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker1010_employerA",
-        "worker_id": "worker_1010",
-        "employer_ref": "employer_A",
-        "amount": 600000,
-        "currency": "INR",
-        "payer_upi_vpa": "employerA_10@okhdfcbank",
-        "note": "salary",
-        "credited_at": "2026-05-01T09:15:00Z"
-      }
-    }
-  },
-  {
-    "id": "ambiguous_1",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2001_employerB",
-        "worker_id": "worker_2001",
-        "employer_ref": "employer_B",
-        "amount": 5137,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_1@okaxis",
         "note": "",
-        "credited_at": "2026-02-11T14:01:00Z"
+        "credited_at": "2026-01-01T09:15:00Z",
+        "worker_id": "worker_1001"
+      },
+      {
+        "rail_id": "va_worker1001_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-02-01T09:15:00Z",
+        "worker_id": "worker_1001"
+      },
+      {
+        "rail_id": "va_worker1001_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-03-01T09:15:00Z",
+        "worker_id": "worker_1001"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1001_employerA",
+      "amount": 601000,
+      "note": "",
+      "credited_at": "2026-04-01T09:15:00Z",
+      "worker_id": "worker_1001"
     }
   },
   {
-    "id": "ambiguous_2",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2002_employerB",
-        "worker_id": "worker_2002",
-        "employer_ref": "employer_B",
-        "amount": 5274,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_2@okaxis",
-        "note": "thx",
-        "credited_at": "2026-03-12T14:02:00Z"
+    "id": "history_match_2",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [
+      {
+        "rail_id": "va_worker1002_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-01-01T09:15:00Z",
+        "worker_id": "worker_1002"
+      },
+      {
+        "rail_id": "va_worker1002_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-02-01T09:15:00Z",
+        "worker_id": "worker_1002"
+      },
+      {
+        "rail_id": "va_worker1002_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-03-01T09:15:00Z",
+        "worker_id": "worker_1002"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1002_employerA",
+      "amount": 602000,
+      "note": "",
+      "credited_at": "2026-04-01T09:15:00Z",
+      "worker_id": "worker_1002"
     }
   },
   {
-    "id": "ambiguous_3",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2003_employerB",
-        "worker_id": "worker_2003",
-        "employer_ref": "employer_B",
-        "amount": 5411,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_3@okaxis",
-        "note": "for work",
-        "credited_at": "2026-04-13T14:03:00Z"
+    "id": "history_match_3",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [
+      {
+        "rail_id": "va_worker1003_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-01-01T09:15:00Z",
+        "worker_id": "worker_1003"
+      },
+      {
+        "rail_id": "va_worker1003_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-02-01T09:15:00Z",
+        "worker_id": "worker_1003"
+      },
+      {
+        "rail_id": "va_worker1003_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-03-01T09:15:00Z",
+        "worker_id": "worker_1003"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1003_employerA",
+      "amount": 603000,
+      "note": "",
+      "credited_at": "2026-04-01T09:15:00Z",
+      "worker_id": "worker_1003"
     }
   },
   {
-    "id": "ambiguous_4",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2004_employerB",
-        "worker_id": "worker_2004",
-        "employer_ref": "employer_B",
-        "amount": 5548,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_4@okaxis",
-        "note": "loan repay?",
-        "credited_at": "2026-05-14T14:04:00Z"
+    "id": "history_match_4",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [
+      {
+        "rail_id": "va_worker1004_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-01-01T09:15:00Z",
+        "worker_id": "worker_1004"
+      },
+      {
+        "rail_id": "va_worker1004_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-02-01T09:15:00Z",
+        "worker_id": "worker_1004"
+      },
+      {
+        "rail_id": "va_worker1004_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-03-01T09:15:00Z",
+        "worker_id": "worker_1004"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1004_employerA",
+      "amount": 604000,
+      "note": "",
+      "credited_at": "2026-04-01T09:15:00Z",
+      "worker_id": "worker_1004"
     }
   },
   {
-    "id": "ambiguous_5",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2005_employerB",
-        "worker_id": "worker_2005",
-        "employer_ref": "employer_B",
-        "amount": 5685,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_5@okaxis",
-        "note": "salary maybe",
-        "credited_at": "2026-06-15T14:05:00Z"
+    "id": "history_match_5",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [
+      {
+        "rail_id": "va_worker1005_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-01-01T09:15:00Z",
+        "worker_id": "worker_1005"
+      },
+      {
+        "rail_id": "va_worker1005_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-02-01T09:15:00Z",
+        "worker_id": "worker_1005"
+      },
+      {
+        "rail_id": "va_worker1005_employerA",
+        "amount": 600000,
+        "note": "",
+        "credited_at": "2026-03-01T09:15:00Z",
+        "worker_id": "worker_1005"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1005_employerA",
+      "amount": 605000,
+      "note": "",
+      "credited_at": "2026-04-01T09:15:00Z",
+      "worker_id": "worker_1005"
     }
   },
   {
-    "id": "ambiguous_6",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2006_employerB",
-        "worker_id": "worker_2006",
-        "employer_ref": "employer_B",
-        "amount": 5822,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_6@okaxis",
-        "note": "payment",
-        "credited_at": "2026-01-16T14:00:00Z"
-      }
+    "id": "note_match_1",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [],
+    "transaction": {
+      "rail_id": "va_worker1101_employerA",
+      "amount": 601000,
+      "note": "salary",
+      "credited_at": "2026-02-01T09:15:00Z",
+      "worker_id": "worker_1101"
     }
   },
   {
-    "id": "ambiguous_7",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2007_employerB",
-        "worker_id": "worker_2007",
-        "employer_ref": "employer_B",
-        "amount": 5959,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_7@okaxis",
-        "note": "urgent",
-        "credited_at": "2026-02-17T14:01:00Z"
+    "id": "note_match_2",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [
+      {
+        "rail_id": "va_worker1102_employerA",
+        "amount": 1806000,
+        "note": "",
+        "credited_at": "2026-01-01T09:15:00Z",
+        "worker_id": "worker_1102"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1102_employerA",
+      "amount": 602000,
+      "note": "wages",
+      "credited_at": "2026-02-01T09:15:00Z",
+      "worker_id": "worker_1102"
     }
   },
   {
-    "id": "ambiguous_8",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2008_employerB",
-        "worker_id": "worker_2008",
-        "employer_ref": "employer_B",
-        "amount": 6096,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_8@okaxis",
-        "note": "gift",
-        "credited_at": "2026-03-18T14:02:00Z"
-      }
+    "id": "note_match_3",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [],
+    "transaction": {
+      "rail_id": "va_worker1103_employerA",
+      "amount": 603000,
+      "note": "wage",
+      "credited_at": "2026-02-01T09:15:00Z",
+      "worker_id": "worker_1103"
     }
   },
   {
-    "id": "ambiguous_9",
-    "label": "needs_review",
-    "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2009_employerB",
-        "worker_id": "worker_2009",
-        "employer_ref": "employer_B",
-        "amount": 6233,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_9@okaxis",
-        "note": "rent share",
-        "credited_at": "2026-04-19T14:03:00Z"
+    "id": "note_match_4",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [
+      {
+        "rail_id": "va_worker1104_employerA",
+        "amount": 1812000,
+        "note": "",
+        "credited_at": "2026-01-01T09:15:00Z",
+        "worker_id": "worker_1104"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1104_employerA",
+      "amount": 604000,
+      "note": "Salary",
+      "credited_at": "2026-02-01T09:15:00Z",
+      "worker_id": "worker_1104"
     }
   },
   {
-    "id": "ambiguous_10",
+    "id": "note_match_5",
+    "label": "recurring_wage",
+    "expected_path": "deterministic",
+    "history": [],
+    "transaction": {
+      "rail_id": "va_worker1105_employerA",
+      "amount": 605000,
+      "note": "SALARY",
+      "credited_at": "2026-02-01T09:15:00Z",
+      "worker_id": "worker_1105"
+    }
+  },
+  {
+    "id": "no_history_1",
     "label": "needs_review",
     "expected_path": "llm_assisted",
-    "payload": {
-      "event": "virtual_account.credited",
-      "payload": {
-        "virtual_account_id": "va_worker2010_employerB",
-        "worker_id": "worker_2010",
-        "employer_ref": "employer_B",
-        "amount": 6370,
-        "currency": "INR",
-        "payer_upi_vpa": "payerB_10@okaxis",
-        "note": "adjust",
-        "credited_at": "2026-05-20T14:04:00Z"
+    "history": [],
+    "transaction": {
+      "rail_id": "va_worker1201_employerB",
+      "amount": 5137,
+      "note": "",
+      "credited_at": "2026-02-11T14:01:00Z",
+      "worker_id": "worker_1201"
+    }
+  },
+  {
+    "id": "no_history_2",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [
+      {
+        "rail_id": "va_worker1202_employerB",
+        "amount": 5000,
+        "note": "",
+        "credited_at": "2026-01-11T14:00:00Z",
+        "worker_id": "worker_1202"
       }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1202_employerB",
+      "amount": 5274,
+      "note": "thx",
+      "credited_at": "2026-02-11T14:01:00Z",
+      "worker_id": "worker_1202"
+    }
+  },
+  {
+    "id": "no_history_3",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [],
+    "transaction": {
+      "rail_id": "va_worker1203_employerB",
+      "amount": 5411,
+      "note": "payment",
+      "credited_at": "2026-02-11T14:01:00Z",
+      "worker_id": "worker_1203"
+    }
+  },
+  {
+    "id": "no_history_4",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [
+      {
+        "rail_id": "va_worker1204_employerB",
+        "amount": 5000,
+        "note": "",
+        "credited_at": "2026-01-11T14:00:00Z",
+        "worker_id": "worker_1204"
+      }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1204_employerB",
+      "amount": 5548,
+      "note": "urgent",
+      "credited_at": "2026-02-11T14:01:00Z",
+      "worker_id": "worker_1204"
+    }
+  },
+  {
+    "id": "no_history_5",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [],
+    "transaction": {
+      "rail_id": "va_worker1205_employerB",
+      "amount": 5685,
+      "note": "gift",
+      "credited_at": "2026-02-11T14:01:00Z",
+      "worker_id": "worker_1205"
+    }
+  },
+  {
+    "id": "amount_mismatch_1",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [
+      {
+        "rail_id": "va_worker1301_employerB",
+        "amount": 5100,
+        "note": "",
+        "credited_at": "2026-01-15T14:00:00Z",
+        "worker_id": "worker_1301"
+      },
+      {
+        "rail_id": "va_worker1301_employerB",
+        "amount": 5100,
+        "note": "",
+        "credited_at": "2026-02-15T14:00:00Z",
+        "worker_id": "worker_1301"
+      }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1301_employerB",
+      "amount": 15300,
+      "note": "adjust",
+      "credited_at": "2026-03-15T14:00:00Z",
+      "worker_id": "worker_1301"
+    }
+  },
+  {
+    "id": "amount_mismatch_2",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [
+      {
+        "rail_id": "va_worker1302_employerB",
+        "amount": 5200,
+        "note": "",
+        "credited_at": "2026-01-15T14:00:00Z",
+        "worker_id": "worker_1302"
+      },
+      {
+        "rail_id": "va_worker1302_employerB",
+        "amount": 5200,
+        "note": "",
+        "credited_at": "2026-02-15T14:00:00Z",
+        "worker_id": "worker_1302"
+      }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1302_employerB",
+      "amount": 15600,
+      "note": "rent share",
+      "credited_at": "2026-03-15T14:00:00Z",
+      "worker_id": "worker_1302"
+    }
+  },
+  {
+    "id": "amount_mismatch_3",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [
+      {
+        "rail_id": "va_worker1303_employerB",
+        "amount": 5300,
+        "note": "",
+        "credited_at": "2026-01-15T14:00:00Z",
+        "worker_id": "worker_1303"
+      },
+      {
+        "rail_id": "va_worker1303_employerB",
+        "amount": 5300,
+        "note": "",
+        "credited_at": "2026-02-15T14:00:00Z",
+        "worker_id": "worker_1303"
+      }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1303_employerB",
+      "amount": 15900,
+      "note": "loan repay?",
+      "credited_at": "2026-03-15T14:00:00Z",
+      "worker_id": "worker_1303"
+    }
+  },
+  {
+    "id": "amount_mismatch_4",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [
+      {
+        "rail_id": "va_worker1304_employerB",
+        "amount": 5400,
+        "note": "",
+        "credited_at": "2026-01-15T14:00:00Z",
+        "worker_id": "worker_1304"
+      },
+      {
+        "rail_id": "va_worker1304_employerB",
+        "amount": 5400,
+        "note": "",
+        "credited_at": "2026-02-15T14:00:00Z",
+        "worker_id": "worker_1304"
+      }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1304_employerB",
+      "amount": 16200,
+      "note": "salary maybe",
+      "credited_at": "2026-03-15T14:00:00Z",
+      "worker_id": "worker_1304"
+    }
+  },
+  {
+    "id": "amount_mismatch_5",
+    "label": "needs_review",
+    "expected_path": "llm_assisted",
+    "history": [
+      {
+        "rail_id": "va_worker1305_employerB",
+        "amount": 5500,
+        "note": "",
+        "credited_at": "2026-01-15T14:00:00Z",
+        "worker_id": "worker_1305"
+      },
+      {
+        "rail_id": "va_worker1305_employerB",
+        "amount": 5500,
+        "note": "",
+        "credited_at": "2026-02-15T14:00:00Z",
+        "worker_id": "worker_1305"
+      }
+    ],
+    "transaction": {
+      "rail_id": "va_worker1305_employerB",
+      "amount": 16500,
+      "note": "for work",
+      "credited_at": "2026-03-15T14:00:00Z",
+      "worker_id": "worker_1305"
     }
   }
 ]
