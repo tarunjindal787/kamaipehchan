@@ -26,6 +26,10 @@ module.exports = {
     webhookSecret: getEnv('RAZORPAY_WEBHOOK_SECRET'),
   },
   llm: {
-    apiKey: getEnv('LLM_API_KEY') || null,
+    // Live getter (not a snapshotted value) so tests can toggle
+    // LLM_API_KEY at runtime within a single process.
+    get apiKey() {
+      return getEnv('LLM_API_KEY') || null;
+    },
   },
 };
