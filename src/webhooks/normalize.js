@@ -8,6 +8,20 @@
  * payload.payment.entity.*). If the confirmed real field name for any of
  * these changes, this is the only place that needs to change.
  */
+// Razorpay's payment.captured created_at is already Unix seconds; our own
+// synthetic virtual_account.credited shape uses an ISO string for
+// credited_at. Downstream scoring math (src/scoring/) does arithmetic
+// directly on this value, so it must always come out as a number here -
+// this is the only place that conversion needs to happen.
+function toUnixSeconds(value) {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : Math.floor(parsed / 1000);
+  }
+  return null;
+}
+
 function normalizeTransaction(rawWebhookPayload) {
   const entity =
     rawWebhookPayload?.payload?.payment?.entity ||
@@ -18,7 +32,7 @@ function normalizeTransaction(rawWebhookPayload) {
     rail_id: entity.virtual_account_id ?? entity.reference_id ?? null,
     amount: entity.amount ?? null,
     note: entity.notes?.note ?? entity.note ?? entity.description ?? '',
-    credited_at: entity.created_at ?? entity.credited_at ?? null,
+    credited_at: toUnixSeconds(entity.created_at ?? entity.credited_at ?? null),
     worker_id: entity.notes?.worker_id ?? entity.worker_id ?? null,
   };
 }

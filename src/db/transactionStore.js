@@ -30,4 +30,17 @@ function getTransactionsByWorker(worker_id) {
   return transactionsByWorker.get(worker_id) || [];
 }
 
-module.exports = { recordTransaction, getHistory, getTransactionsByWorker };
+// Section 7, non-negotiable: an unconfirmed transaction is never scored.
+// This is the ONLY sanctioned way to read a worker's transactions for
+// scoring - it filters out anything still needs_review so that rule is
+// structurally hard to bypass by accident.
+function getConfirmedTransactionsByWorker(worker_id) {
+  return getTransactionsByWorker(worker_id).filter((t) => t.needs_review === false);
+}
+
+module.exports = {
+  recordTransaction,
+  getHistory,
+  getTransactionsByWorker,
+  getConfirmedTransactionsByWorker,
+};

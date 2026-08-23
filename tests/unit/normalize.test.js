@@ -20,9 +20,12 @@ const vaResult = normalizeTransaction(vaEvent);
 assert.strictEqual(vaResult.rail_id, 'va_test_1');
 assert.strictEqual(vaResult.amount, 600000);
 assert.strictEqual(vaResult.note, 'salary');
-assert.strictEqual(vaResult.credited_at, '2026-01-01T09:15:00Z');
+// credited_at must always come out as Unix seconds (a number), never the raw
+// ISO string, so downstream scoring math can safely do arithmetic on it.
+assert.strictEqual(typeof vaResult.credited_at, 'number');
+assert.strictEqual(vaResult.credited_at, Math.floor(Date.parse('2026-01-01T09:15:00Z') / 1000));
 assert.strictEqual(vaResult.worker_id, 'worker_test_1');
-console.log('  ✓ virtual_account.credited shape normalizes correctly');
+console.log('  ✓ virtual_account.credited shape normalizes correctly (credited_at converted to Unix seconds)');
 
 // Real payment.captured sample (tests/benchmark_payloads/real_test_mode/sample_credit_event.json).
 // KNOWN GAP: this sample predates reference_id-on-Payment-Link testing and has
