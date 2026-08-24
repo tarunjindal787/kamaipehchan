@@ -26,6 +26,8 @@ The system processes incoming financial events through a multi-stage pipeline:
 
 **Day 2** - Module 1 (hybrid classifier) wired end-to-end: `normalize` -> `classifyAndRecord` (deterministic rail-history/note matching, LLM fallback, confidence gate, simulated worker confirmation) -> webhook response - confirmed live via direct webhook smoke tests, not just unit tests. Benchmark: 100% accuracy on both `deterministic` and `llm_unavailable` paths, but the latter reflects the safety fallback (no `LLM_API_KEY` set), not real LLM reasoning - the real Anthropic call has never been run. Known gap: `rail_id` still resolves to `null` on the only real captured sample - it predates `reference_id`-on-Payment-Link testing and has neither `virtual_account_id` nor `reference_id`. Scoring engine not started.
 
+**Day 3** - Module 2 (ISI Engine) complete: regularity, retention, variance combined into an explainable 0-100 score with stated weights (40/30/30). Credit Passport assembled on-demand via `GET /passport/:workerId`, not per-webhook. Confirmed confidence level: high across multi-employer 6-month synthetic history.
+
 ---
 
 ## Getting Started
