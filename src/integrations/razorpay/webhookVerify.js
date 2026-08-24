@@ -1,7 +1,23 @@
+/**
+ * KamaiPehchan - Webhook Signature Verification (Day 1)
+ *
+ * Implements cryptographic HMAC-SHA256 signature verification for incoming
+ * Razorpay webhook events using a timing-safe buffer comparison to prevent
+ * timing attack vulnerabilities.
+ */
+
 const crypto = require('crypto');
 
+/**
+ * Verifies that the raw HTTP body matches the X-Razorpay-Signature header.
+ *
+ * @param {string|Buffer} rawBody - Exact raw HTTP request body string
+ * @param {string} signatureHeader - Value of the X-Razorpay-Signature header
+ * @param {string} webhookSecret - Configured secret from Razorpay Dashboard
+ * @returns {boolean} True if signature is cryptographically valid, false otherwise
+ */
 function verifyWebhookSignature(rawBody, signatureHeader, webhookSecret) {
-  if (!signatureHeader || !webhookSecret) return false;
+  if (!signatureHeader || !webhookSecret || !rawBody) return false;
 
   const expectedSignature = crypto
     .createHmac('sha256', webhookSecret)

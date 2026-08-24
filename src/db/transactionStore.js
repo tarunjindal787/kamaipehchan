@@ -1,9 +1,25 @@
-// In-memory transaction history store for Day 1/2 prototype only.
-// Replace with a persistent store (DB) beyond the demo stage - this
-// resets on server restart and won't work across multiple instances.
+/**
+ * KamaiPehchan - In-Memory Transaction Store (Day 2 & Day 3)
+ *
+ * In-memory ledger tracking transaction histories indexed by:
+ * 1. rail_id (for deterministic classifier pattern matching)
+ * 2. worker_id (for ISI Engine scoring & Credit Passport assembly)
+ *
+ * CRITICAL ARCHITECTURAL SAFEGUARD (Section 7):
+ * `getConfirmedTransactionsByWorker` strictly filters out any transaction
+ * where `needs_review !== false`. Unconfirmed transactions are structurally
+ * barred from influencing a worker's credit score.
+ */
+
 const transactionsByRail = new Map();
 const transactionsByWorker = new Map();
 
+/**
+ * Records a normalized transaction into both rail and worker indices.
+ *
+ * @param {Object} transaction - Normalized transaction object
+ * @returns {Object} Stored transaction
+ */
 function recordTransaction(transaction) {
   if (!transaction?.rail_id) {
     throw new Error('recordTransaction requires a transaction with rail_id');
@@ -22,18 +38,34 @@ function recordTransaction(transaction) {
   return transaction;
 }
 
+/**
+ * Retrieves full transaction history for a specific payment rail.
+ *
+ * @param {string} rail_id - Dedicated rail identifier (e.g. virtual_account_id)
+ * @returns {Array<Object>} List of transactions on this rail
+ */
 function getHistory(rail_id) {
   return transactionsByRail.get(rail_id) || [];
 }
 
+/**
+ * Retrieves all transactions associated with a worker (including pending/unconfirmed).
+ *
+ * @param {string} worker_id - Worker identifier
+ * @returns {Array<Object>} All transactions for this worker
+ */
 function getTransactionsByWorker(worker_id) {
   return transactionsByWorker.get(worker_id) || [];
 }
 
-// Section 7, non-negotiable: an unconfirmed transaction is never scored.
-// This is the ONLY sanctioned way to read a worker's transactions for
-// scoring - it filters out anything still needs_review so that rule is
-// structurally hard to bypass by accident.
+/**
+ * Retrieves ONLY confirmed transactions for scoring (excludes needs_review).
+ *
+ * Section 7 rule: An unconfirmed transaction is never scored.
+ *
+ * @param {string} worker_id - Worker identifier
+ * @returns {Array<Object>} Confirmed transactions for this worker
+ */
 function getConfirmedTransactionsByWorker(worker_id) {
   return getTransactionsByWorker(worker_id).filter((t) => t.needs_review === false);
 }

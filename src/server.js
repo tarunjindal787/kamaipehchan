@@ -1,3 +1,12 @@
+/**
+ * KamaiPehchan - Main Application Server
+ *
+ * Core Express server exposing:
+ * - GET /health : Health check and service status probe
+ * - POST /webhooks/razorpay : Real-time webhook ingestion (Day 1 & Day 2)
+ * - GET /passport/:workerId : On-demand Credit Passport API (Day 3)
+ */
+
 const express = require('express');
 const config = require('./config/env');
 const { razorpayWebhookHandler } = require('./webhooks/razorpayWebhookHandler');
@@ -5,6 +14,7 @@ const { buildPassport } = require('./passport/buildPassport');
 
 const app = express();
 
+// Capture raw body buffer for cryptographically accurate HMAC-SHA256 verification
 app.use(
   express.json({
     verify: (req, res, buf) => {
@@ -13,13 +23,17 @@ app.use(
   })
 );
 
+// ── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'kamaipehchan' });
 });
 
+// ── Webhook Ingestion Rail (Day 1 / Day 2) ───────────────────────────────────
+// Listens for payment.captured and virtual_account.credited events
 app.post('/webhooks/razorpay', razorpayWebhookHandler);
 
-// Section 4a: On-demand Credit Passport generation endpoint
+// ── Section 4a: On-Demand Credit Passport Endpoint (Day 3) ───────────────────
+// Assembles explainable ISI score, confidence, and 6-month income average
 app.get('/passport/:workerId', (req, res) => {
   const passport = buildPassport(req.params.workerId);
   if (passport.status === 'insufficient_data') {
@@ -28,6 +42,7 @@ app.get('/passport/:workerId', (req, res) => {
   return res.json(passport);
 });
 
+// Start listening when executed directly as the entry point
 if (require.main === module) {
   app.listen(config.port, () => {
     console.log(`KamaiPehchan server running on port ${config.port}`);
