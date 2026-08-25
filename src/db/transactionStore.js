@@ -70,9 +70,32 @@ function getConfirmedTransactionsByWorker(worker_id) {
   return getTransactionsByWorker(worker_id).filter((t) => t.needs_review === false);
 }
 
+// Section 4: ISI is about wage income specifically. A confirmed
+// one_off_transfer or advance is a real, resolved transaction, but it
+// isn't income - it must not feed regularity/retention/variance math.
+const INCOME_LABELS = ['recurring_wage', 'gig_payout'];
+
+/**
+ * Retrieves ONLY confirmed transactions that also represent income
+ * (excludes needs_review AND non-income labels like one_off_transfer/advance).
+ * This is what ISI/Credit Passport scoring should read - getConfirmedTransactionsByWorker
+ * stays available for callers that legitimately want all confirmed transactions
+ * regardless of label.
+ *
+ * @param {string} worker_id - Worker identifier
+ * @returns {Array<Object>} Confirmed income transactions for this worker
+ */
+function getConfirmedIncomeTransactionsByWorker(worker_id) {
+  return getTransactionsByWorker(worker_id).filter(
+    (t) => t.needs_review === false && INCOME_LABELS.includes(t.label)
+  );
+}
+
 module.exports = {
   recordTransaction,
   getHistory,
   getTransactionsByWorker,
   getConfirmedTransactionsByWorker,
+  getConfirmedIncomeTransactionsByWorker,
+  INCOME_LABELS,
 };

@@ -1,7 +1,7 @@
 const { calculateRegularity } = require('./regularity');
 const { calculateRetention } = require('./employerRetention');
 const { calculateVariance } = require('./varianceCalc');
-const { getConfirmedTransactionsByWorker } = require('../db/transactionStore');
+const { getConfirmedIncomeTransactionsByWorker } = require('../db/transactionStore');
 
 // Explicit, documented weights - stated here so they can be scrutinized
 // and adjusted, not hidden inside a formula. Placeholder weights for
@@ -17,7 +17,7 @@ function groupByRail(transactions) {
 }
 
 function calculateISI(worker_id) {
-  const confirmed = getConfirmedTransactionsByWorker(worker_id);
+  const confirmed = getConfirmedIncomeTransactionsByWorker(worker_id);
 
   if (confirmed.length === 0) {
     return { isi_score: null, confidence: 'none', reason: 'no_confirmed_transactions' };

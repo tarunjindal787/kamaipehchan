@@ -19,13 +19,16 @@ const activeWorker = 'worker_passport_active_test';
 const now = Math.floor(Date.now() / 1000);
 const monthSeconds = 30 * 86400;
 
-// Record confirmed transactions across 2 rails over recent months
+// Record confirmed transactions across 2 rails over recent months.
+// label is required now - getConfirmedIncomeTransactionsByWorker excludes
+// anything without an INCOME_LABELS label, regardless of needs_review.
 recordTransaction({
   rail_id: 'rail_zepto_p1',
   worker_id: activeWorker,
   amount: 25000,
   credited_at: now - 90 * 86400,
   needs_review: false,
+  label: 'recurring_wage',
   note: 'payout',
 });
 recordTransaction({
@@ -34,6 +37,7 @@ recordTransaction({
   amount: 25000,
   credited_at: now - 60 * 86400,
   needs_review: false,
+  label: 'recurring_wage',
   note: 'payout',
 });
 recordTransaction({
@@ -42,6 +46,7 @@ recordTransaction({
   amount: 15000,
   credited_at: now - 30 * 86400,
   needs_review: false,
+  label: 'gig_payout',
   note: 'payout',
 });
 

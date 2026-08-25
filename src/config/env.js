@@ -32,4 +32,15 @@ module.exports = {
       return getEnv('LLM_API_KEY') || null;
     },
   },
+  twilio: {
+    get accountSid() {
+      return getEnv('TWILIO_ACCOUNT_SID') || null;
+    },
+    get authToken() {
+      return getEnv('TWILIO_AUTH_TOKEN') || null;
+    },
+    get phoneNumber() {
+      return getEnv('TWILIO_PHONE_NUMBER') || null;
+    },
+  },
 };

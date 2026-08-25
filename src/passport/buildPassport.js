@@ -11,7 +11,7 @@
  */
 
 const { calculateISI } = require('../scoring/isiEngine');
-const { getConfirmedTransactionsByWorker } = require('../db/transactionStore');
+const { getConfirmedIncomeTransactionsByWorker } = require('../db/transactionStore');
 
 /**
  * Computes the average monthly income across the last 6 months (180 days).
@@ -42,7 +42,7 @@ function sixMonthAverageIncome(confirmedTransactions) {
  * @returns {Object} Credit Passport payload
  */
 function buildPassport(worker_id) {
-  const confirmed = getConfirmedTransactionsByWorker(worker_id);
+  const confirmed = getConfirmedIncomeTransactionsByWorker(worker_id);
   const isi = calculateISI(worker_id);
 
   // Safeguard: Do not manufacture scores for workers with zero confirmed data

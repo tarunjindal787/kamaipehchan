@@ -11,6 +11,7 @@ const express = require('express');
 const config = require('./config/env');
 const { razorpayWebhookHandler } = require('./webhooks/razorpayWebhookHandler');
 const { buildPassport } = require('./passport/buildPassport');
+const { handleConfirmationReply } = require('./worker/confirmationHandler');
 
 const app = express();
 
@@ -41,6 +42,10 @@ app.get('/passport/:workerId', (req, res) => {
   }
   return res.json(passport);
 });
+
+// Twilio sends form-encoded, not JSON, for inbound SMS webhooks - the
+// global express.json() above doesn't parse this, so it's scoped here.
+app.post('/worker/confirm', express.urlencoded({ extended: false }), handleConfirmationReply);
 
 // Start listening when executed directly as the entry point
 if (require.main === module) {
