@@ -1,5 +1,6 @@
 const config = require('../config/env');
 const { registerPending } = require('./pendingConfirmations');
+const { getWorkerIdentity } = require('../db/workerRegistry');
 
 // Routed through config/env.js's placeholder-aware getEnv, not raw
 // process.env - a copy-pasted .env.example placeholder is truthy as a
@@ -17,15 +18,21 @@ function getTwilioClient() {
   return twilioClient;
 }
 
-// KNOWN LIMITATION: uses transaction.worker_phone if present, else
-// falls back to worker_id (which is NOT a real phone number). Real
-// SMS sending will only work once worker records have real phone
-// numbers attached - out of scope for this step, flagged here so it's
-// not silently assumed to work.
 async function sendConfirmationPrompt(transaction, classificationResult) {
   const amount = (transaction.amount / 100).toFixed(0);
   const message = `Is Rs.${amount} aapki monthly salary hai? Reply 1 for haan, 2 for personal/loan transfer.`;
-  const phoneNumber = transaction.worker_phone || transaction.worker_id;
+
+  // Root-cause fix: transaction.worker_phone never existed as a real
+  // field - it silently fell back to worker_id (not a phone number).
+  // Now sourced from the worker identity registry, which is honestly
+  // empty until onboarding (Section 5) is built.
+  const workerIdentity = getWorkerIdentity(transaction.worker_id);
+  const phoneNumber = workerIdentity?.phone || null;
+
+  if (!phoneNumber) {
+    console.log(`[notifier] No phone on file for worker ${transaction.worker_id} - SIMULATED: "${message}"`);
+    return { sent: true, simulated: true, reason: 'no_phone_on_file' };
+  }
 
   registerPending(phoneNumber, { ...transaction, suspected_label: classificationResult.original_label || classificationResult.label });
 

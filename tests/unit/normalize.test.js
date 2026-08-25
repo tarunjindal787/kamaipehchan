@@ -43,6 +43,7 @@ assert.strictEqual(realResult.amount, 50000);
 assert.strictEqual(realResult.worker_id, 'WRK-001');
 assert.strictEqual(realResult.note, '#TSYkTArzAN9AGy');
 assert.strictEqual(realResult.credited_at, 1787346001);
+assert.strictEqual(realResult.payer_identifier, '+917877722029', 'payer_identifier should come from the real contact field');
 console.log(
   '  ✓ real payment.captured sample: amount/worker_id/note/credited_at extracted correctly; ' +
     'rail_id documented as null (known gap, not a bug - see comment above)'

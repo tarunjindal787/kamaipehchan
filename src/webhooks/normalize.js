@@ -34,6 +34,10 @@ function normalizeTransaction(rawWebhookPayload) {
     note: entity.notes?.note ?? entity.note ?? entity.description ?? '',
     credited_at: toUnixSeconds(entity.created_at ?? entity.credited_at ?? null),
     worker_id: entity.notes?.worker_id ?? entity.worker_id ?? null,
+    // Real payer-side identity signal (Section 7a self-payment check).
+    // No equivalent real worker-side identity exists yet - see
+    // src/db/workerRegistry.js.
+    payer_identifier: entity.contact ?? entity.vpa ?? entity.email ?? null,
   };
 }
 
