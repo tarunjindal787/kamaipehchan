@@ -28,6 +28,8 @@ The system processes incoming financial events through a multi-stage pipeline:
 
 **Day 3** - Module 2 (ISI Engine) complete: regularity, retention, variance combined into an explainable 0-100 score with stated weights (40/30/30). Credit Passport assembled on-demand via `GET /passport/:workerId`, not per-webhook. Confirmed confidence level: high across multi-employer 6-month synthetic history.
 
+**Day 4** - Real SMS confirmation loop (`POST /worker/confirm`, form-urlencoded) via Twilio with a simulated-log fallback - `TWILIO_*` still placeholders, so the real send path has never actually run. ISI/Passport now score only `recurring_wage`/`gig_payout`-labeled transactions (`getConfirmedIncomeTransactionsByWorker`), so a confirmed `one_off_transfer` no longer inflates income math. Known gaps: `notifier.js` falls back to `worker_id` as a phone number until real numbers exist on worker records; confirming a transaction via reply re-records it rather than updating in place, leaving a duplicate entry in that rail's history.
+
 ---
 
 ## Getting Started
