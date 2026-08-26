@@ -7,6 +7,7 @@
  * - GET /passport/:workerId : On-demand Credit Passport API (Day 3)
  * - POST /worker/confirm : Inbound SMS confirmation replies (Day 4)
  * - POST /worker/register, GET /worker/:workerId : Worker onboarding (Day 5)
+ * - POST /worker/:workerId/employer, GET /worker/:workerId/employers : Employer linking (Day 5)
  */
 
 const express = require('express');
@@ -15,6 +16,7 @@ const { razorpayWebhookHandler } = require('./webhooks/razorpayWebhookHandler');
 const { buildPassport } = require('./passport/buildPassport');
 const { handleConfirmationReply } = require('./worker/confirmationHandler');
 const { handleRegister, handleGetWorker } = require('./worker/registration');
+const { handleAddEmployer, handleGetEmployerRails } = require('./worker/employerLinking');
 
 const app = express();
 
@@ -53,6 +55,8 @@ app.post('/worker/confirm', express.urlencoded({ extended: false }), handleConfi
 // ── Section 5: Worker Onboarding (Day 5) ─────────────────────────────────────
 app.post('/worker/register', handleRegister);
 app.get('/worker/:workerId', handleGetWorker);
+app.post('/worker/:workerId/employer', express.json(), handleAddEmployer);
+app.get('/worker/:workerId/employers', handleGetEmployerRails);
 
 // Start listening when executed directly as the entry point
 if (require.main === module) {
