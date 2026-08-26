@@ -5,11 +5,10 @@ function generateWorkerId() {
   return `worker_${crypto.randomBytes(4).toString('hex')}`;
 }
 
-// NOTE: the worker_id returned here must be the SAME value manually set
-// as notes.worker_id when a Payment Link is later created for this
-// worker - there is no automatic link between registration and
-// payment-link creation yet. That gap is real and stays open until
-// Group 2's employer-linking endpoint exists.
+// The worker_id returned here is what src/worker/employerLinking.js
+// derives reference_id from when a Payment Link is created for this
+// worker - registering first is what keeps that reference_id in sync,
+// automatically, rather than someone hand-typing it later.
 function handleRegister(req, res) {
   const { phone, name, vpa, worker_id } = req.body || {};
 

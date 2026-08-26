@@ -1,25 +1,10 @@
-/**
- * KamaiPehchan - Rail-Level Employer Attribution Service (Day 1)
- *
- * Implements Section 6a: Employer attribution guaranteed by the payment rail.
- * Each worker has a dedicated Virtual Account per employer (e.g. Swiggy, Zepto, Blinkit).
- * Incoming webhook events are attributed strictly via virtual_account_id lookup in the
- * registry, with ZERO reliance on free-text notes, descriptions, or AI guessing.
- */
+// Section 6a: each worker has a dedicated Virtual Account per employer,
+// so attribution comes straight from the payment rail (virtual_account_id)
+// rather than free-text notes, descriptions, or any kind of guessing.
 
 // In-memory mapping table (prototype for DB: virtual_accounts table)
 const virtualAccountRegistry = new Map();
 
-/**
- * Registers or provisions a dedicated Virtual Account for a (worker, employer) pair.
- *
- * @param {Object} params
- * @param {string} params.virtualAccountId - Unique Virtual Account ID (e.g. 'va_worker1_zepto')
- * @param {string} params.workerId - Unique worker identifier
- * @param {string} params.employerRef - Verified employer identifier (e.g. 'Zepto')
- * @param {string} [params.description] - Optional human-readable rail description
- * @returns {Object} Registered record
- */
 function registerVirtualAccount({ virtualAccountId, workerId, employerRef, description }) {
   const record = {
     virtualAccountId,
@@ -32,13 +17,6 @@ function registerVirtualAccount({ virtualAccountId, workerId, employerRef, descr
   return record;
 }
 
-/**
- * Attributes an incoming payment strictly by the payment rail's Virtual Account ID.
- * Completely ignores unverified payer notes or heuristic text matching.
- *
- * @param {Object} event - Raw or normalized webhook event payload
- * @returns {Object} Attribution outcome { attributed: boolean, workerId, employerRef, amountInr, ... }
- */
 function attributePaymentFromRail(event) {
   // Extract virtual account identifier from Razorpay webhook payload
   const vaId =

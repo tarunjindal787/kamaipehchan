@@ -1,13 +1,9 @@
 /**
- * KamaiPehchan - Classify and Record Pipeline Coordinator (Day 2/4)
- *
- * Coordinates the full transaction processing lifecycle:
- * 1. Invokes the hybrid classifier (Deterministic -> LLM fallback)
- * 2. Applies the Confidence Gate (threshold: 0.70)
- * 3. Runs fraud/anomaly checks (Section 7a) - a flag forces needs_review
- *    regardless of classifier confidence
- * 4. Records transaction to Transaction Store with appropriate flags
- * 5. Triggers worker confirmation prompt if needs_review is true (Section 7)
+ * Runs a transaction through the full pipeline: classify (deterministic
+ * then LLM fallback), gate on confidence, run fraud/anomaly checks (a
+ * flag forces needs_review no matter how confident the classifier was),
+ * record it, and prompt the worker for confirmation if it's still
+ * needs_review.
  */
 
 const { classifyTransaction } = require('./index');
@@ -17,13 +13,6 @@ const { sendConfirmationPrompt } = require('../worker/notifier');
 const { detectAnomalies } = require('../fraud/anomalyDetector');
 const { isSelfPayment } = require('../fraud/selfPaymentCheck');
 
-/**
- * Classifies, gates, fraud-checks, records, and triggers notifications
- * for a normalized transaction.
- *
- * @param {Object} transaction - Normalized transaction object
- * @returns {Promise<Object>} Gated classification result
- */
 async function classifyAndRecord(transaction) {
   const classification = await classifyTransaction(transaction);
   let gated = applyGate(classification);

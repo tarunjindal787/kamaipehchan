@@ -1,21 +1,8 @@
-/**
- * KamaiPehchan - Webhook Event Idempotency & Deduplication (Day 1)
- *
- * Prevents duplicate processing of payment webhook events (e.g. on network retries).
- *
- * NOTE: In-memory store for the prototype. In production, back this with
- * an atomic Redis key (SETNX with TTL) or a unique DB constraint on event_id.
- */
-
+// Prevents reprocessing the same webhook event on a network retry.
+// In-memory for the prototype - swap for an atomic Redis SETNX (with
+// TTL) or a unique DB constraint on event_id before this runs for real.
 const processedEventIds = new Set();
 
-/**
- * Checks if an event ID has already been processed.
- * If new, registers the event ID and returns false.
- *
- * @param {string} eventId - Unique event or payment entity identifier
- * @returns {boolean} True if duplicate, false if new event
- */
 function isDuplicateEvent(eventId) {
   if (!eventId) return false;
   if (processedEventIds.has(eventId)) return true;

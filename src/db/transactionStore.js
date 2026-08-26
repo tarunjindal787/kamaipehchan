@@ -1,25 +1,16 @@
 /**
- * KamaiPehchan - In-Memory Transaction Store (Day 2 & Day 3)
+ * In-memory ledger, indexed two ways: by rail_id (for the deterministic
+ * classifier's history matching) and by worker_id (for ISI scoring and
+ * Credit Passport assembly).
  *
- * In-memory ledger tracking transaction histories indexed by:
- * 1. rail_id (for deterministic classifier pattern matching)
- * 2. worker_id (for ISI Engine scoring & Credit Passport assembly)
- *
- * CRITICAL ARCHITECTURAL SAFEGUARD (Section 7):
- * `getConfirmedTransactionsByWorker` strictly filters out any transaction
- * where `needs_review !== false`. Unconfirmed transactions are structurally
- * barred from influencing a worker's credit score.
+ * Section 7 safeguard: getConfirmedTransactionsByWorker filters out
+ * anything where needs_review !== false. Unconfirmed transactions are
+ * structurally barred from influencing a worker's credit score.
  */
 
 const transactionsByRail = new Map();
 const transactionsByWorker = new Map();
 
-/**
- * Records a normalized transaction into both rail and worker indices.
- *
- * @param {Object} transaction - Normalized transaction object
- * @returns {Object} Stored transaction
- */
 function recordTransaction(transaction) {
   if (!transaction?.rail_id) {
     throw new Error('recordTransaction requires a transaction with rail_id');
@@ -38,34 +29,16 @@ function recordTransaction(transaction) {
   return transaction;
 }
 
-/**
- * Retrieves full transaction history for a specific payment rail.
- *
- * @param {string} rail_id - Dedicated rail identifier (e.g. virtual_account_id)
- * @returns {Array<Object>} List of transactions on this rail
- */
 function getHistory(rail_id) {
   return transactionsByRail.get(rail_id) || [];
 }
 
-/**
- * Retrieves all transactions associated with a worker (including pending/unconfirmed).
- *
- * @param {string} worker_id - Worker identifier
- * @returns {Array<Object>} All transactions for this worker
- */
+// Includes pending/unconfirmed transactions - see getConfirmedTransactionsByWorker
+// below for the version that's actually safe to score with.
 function getTransactionsByWorker(worker_id) {
   return transactionsByWorker.get(worker_id) || [];
 }
 
-/**
- * Retrieves ONLY confirmed transactions for scoring (excludes needs_review).
- *
- * Section 7 rule: An unconfirmed transaction is never scored.
- *
- * @param {string} worker_id - Worker identifier
- * @returns {Array<Object>} Confirmed transactions for this worker
- */
 function getConfirmedTransactionsByWorker(worker_id) {
   return getTransactionsByWorker(worker_id).filter((t) => t.needs_review === false);
 }
@@ -75,16 +48,9 @@ function getConfirmedTransactionsByWorker(worker_id) {
 // isn't income - it must not feed regularity/retention/variance math.
 const INCOME_LABELS = ['recurring_wage', 'gig_payout'];
 
-/**
- * Retrieves ONLY confirmed transactions that also represent income
- * (excludes needs_review AND non-income labels like one_off_transfer/advance).
- * This is what ISI/Credit Passport scoring should read - getConfirmedTransactionsByWorker
- * stays available for callers that legitimately want all confirmed transactions
- * regardless of label.
- *
- * @param {string} worker_id - Worker identifier
- * @returns {Array<Object>} Confirmed income transactions for this worker
- */
+// This is what ISI/Credit Passport scoring should actually read.
+// getConfirmedTransactionsByWorker above stays available for callers that
+// legitimately want all confirmed transactions regardless of label.
 function getConfirmedIncomeTransactionsByWorker(worker_id) {
   return getTransactionsByWorker(worker_id).filter(
     (t) => t.needs_review === false && INCOME_LABELS.includes(t.label)

@@ -1,6 +1,4 @@
 /**
- * KamaiPehchan - Main Application Server
- *
  * Core Express server exposing:
  * - GET /health : Health check and service status probe
  * - POST /webhooks/razorpay : Real-time webhook ingestion (Day 1 & Day 2)

@@ -1,24 +1,10 @@
-/**
- * KamaiPehchan - Credit Passport Assembly Module (Day 3)
- *
- * Assembles the Section 4 Lender/Worker Credit Passport on-demand from:
- * 1. Income Stability Index (ISI) Engine calculation (0-100 explainable score)
- * 2. Confirmed transaction history from the Transaction Store
- * 3. 6-Month rolling average monthly income computation
- *
- * If a worker has insufficient transaction data, this returns an explicit
- * { status: 'insufficient_data' } payload with isi_score: null (no fake/guessed scores).
- */
+// Assembles the Section 4 Credit Passport on-demand: the ISI score plus
+// a 6-month income average. Zero confirmed transactions -> explicit
+// insufficient_data with isi_score: null, never a guessed score.
 
 const { calculateISI } = require('../scoring/isiEngine');
 const { getConfirmedIncomeTransactionsByWorker } = require('../db/transactionStore');
 
-/**
- * Computes the average monthly income across the last 6 months (180 days).
- *
- * @param {Array<Object>} confirmedTransactions - List of confirmed worker transactions
- * @returns {number|null} Average monthly income in paise/units, or null if no recent activity
- */
 function sixMonthAverageIncome(confirmedTransactions) {
   const sixMonthsAgo = Math.floor(Date.now() / 1000) - 6 * 30 * 86400;
   const recent = confirmedTransactions.filter((t) => t.credited_at >= sixMonthsAgo);
@@ -35,12 +21,6 @@ function sixMonthAverageIncome(confirmedTransactions) {
   return Math.round(total / Math.max(1, months));
 }
 
-/**
- * Builds the canonical Credit Passport for a given worker.
- *
- * @param {string} worker_id - Unique worker identifier
- * @returns {Object} Credit Passport payload
- */
 function buildPassport(worker_id) {
   const confirmed = getConfirmedIncomeTransactionsByWorker(worker_id);
   const isi = calculateISI(worker_id);
