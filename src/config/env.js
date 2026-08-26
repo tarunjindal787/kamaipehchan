@@ -21,9 +21,15 @@ if (missing.length > 0) {
 module.exports = {
   port: process.env.PORT || 3000,
   razorpay: {
-    keyId: getEnv('RAZORPAY_KEY_ID'),
-    keySecret: getEnv('RAZORPAY_KEY_SECRET'),
-    webhookSecret: getEnv('RAZORPAY_WEBHOOK_SECRET'),
+    get keyId() {
+      return getEnv('RAZORPAY_KEY_ID');
+    },
+    get keySecret() {
+      return getEnv('RAZORPAY_KEY_SECRET');
+    },
+    get webhookSecret() {
+      return getEnv('RAZORPAY_WEBHOOK_SECRET');
+    },
   },
   llm: {
     // Live getter (not a snapshotted value) so tests can toggle
