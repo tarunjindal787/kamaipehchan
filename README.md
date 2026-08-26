@@ -15,10 +15,14 @@ The system processes incoming financial events through a multi-stage pipeline:
 +------------------------+      +------------------------+      +------------------------+      +------------------------+
 ```
 
-1. **Webhook Handler (`src/webhooks/`, `src/integrations/razorpay/`):** Listens for real-time payment and virtual account credit events, verifies cryptographic HMAC SHA-256 signatures, and deduplicates events.
+1. **Webhook Ingestion (`src/webhooks/`, `src/integrations/razorpay/`):** Listens for real-time payment and virtual account credit events, verifies cryptographic HMAC SHA-256 signatures, and deduplicates events.
 2. **Payment Classifier (`src/classifier/`, `src/integrations/llm/`):** Categorizes transactions into recurring wages, gig payouts, advances, or transfers using rule-based deterministic filters with LLM-assisted fallback for ambiguous notes.
-3. **ISI Engine (`src/scoring/`, `src/fraud/`):** Computes Income Stability Index (ISI), volatility metrics, employer diversity scores, and fraud anomaly checks.
-4. **Credit Passport (`src/passport/`, `frontend/`):** Generates privacy-preserving, lender-ready credit passports and worker views.
+3. **Fraud & Anomaly Detection (`src/fraud/`):** Detects round-number manipulation, artificial interval uniformity, and self-funding loops via worker VPA identity checks.
+4. **ISI Engine (`src/scoring/`):** Computes the explainable Income Stability Index (ISI) across Regularity (40%), Retention (30%), and Variance (30%).
+5. **Credit Passport & Privacy Layer (`src/passport/`, `src/privacy/`):** Generates privacy-preserving, lender-ready credit passports with selective disclosure (`?view=lender` vs `?view=worker`).
+6. **Worker Onboarding & Rail Linking (`src/worker/`, `src/db/`):** Provides automated worker registration and deterministic employer payment rail creation (`reference_id = RAIL_<workerId>_EMP_<slug>`).
+
+---
 
 ## Status
 
@@ -31,6 +35,23 @@ The system processes incoming financial events through a multi-stage pipeline:
 **Day 4** - SMS confirmation loop (`POST /worker/confirm`, form-urlencoded) via Twilio with a simulated-log fallback - `TWILIO_*` still placeholders, real send has never actually run. Income-label scoring fix: `getConfirmedIncomeTransactionsByWorker` excludes `one_off_transfer`/`advance` from ISI even when resolved (`needs_review: false`) - only `recurring_wage`/`gig_payout` count as income. Fraud/anomaly detection (round-number amounts, unnaturally uniform intervals) wired into the classification pipeline - flags force `needs_review` regardless of classifier confidence, never an auto-reject. Worker identity registry (`src/db/workerRegistry.js`) is a stub, currently empty - self-payment checks correctly return `checked: false` for every real worker until it's populated, which depends on worker onboarding (Section 5), not yet built.
 
 **Day 5** - Section 5 (worker onboarding) built: `POST /worker/register` + `GET /worker/:workerId` populate the identity registry with real phone/name/VPA - self-payment checks and SMS delivery now actually work end-to-end for any registered worker, verified live (real phone number in the notifier log, `isSelfPayment` returning `checked: true`, not the permanent `checked: false` from Day 4). Employer linking (`POST /worker/:workerId/employer`, `GET /worker/:workerId/employers`) closes the manual-sync gap: `reference_id` is now deterministically derived from the real registered `worker_id`, not hand-typed. Razorpay is still unconfigured, so every call returns an honestly-labeled `mock: true` response with `payment_link_url: null` - the real `paymentLink.create` code path (which does correctly set `notes.worker_id` to the real registered `worker_id`) exists but has never actually run against Razorpay's API, so the fix is unverified end-to-end - still depends on real Razorpay keys to confirm it actually produces a working, in-sync webhook.
+
+---
+
+## API Endpoints
+
+See the full [API Reference](docs/API_REFERENCE.md) for request/response schemas and curl examples.
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Service uptime and health check |
+| `POST` | `/webhooks/razorpay` | Real-time Razorpay payment and virtual account webhook ingestion |
+| `GET` | `/passport/:workerId` | On-demand Credit Passport (`?view=lender` or `?view=worker`) |
+| `POST` | `/worker/register` | Worker onboarding & identity registration |
+| `GET` | `/worker/:workerId` | Retrieve registered worker identity profile |
+| `POST` | `/worker/:workerId/employer` | Create linked employer payment rail (`RAIL_<workerId>_EMP_<slug>`) |
+| `GET` | `/worker/:workerId/employers` | List all linked employer rails for a worker |
+| `POST` | `/worker/confirm` | Inbound Twilio SMS confirmation webhook |
 
 ---
 
@@ -47,14 +68,19 @@ cp .env.example .env
 npm install
 ```
 
-### 3. Run Development Server
+### 3. Run Test Suite (13 Unit Test Suites)
+```bash
+npm test
+```
+
+### 4. Run Development Server
 ```bash
 npm run dev
 # or
 npm start
 ```
 
-### 4. Run Tunnel
+### 5. Run Tunnel
 ```bash
 npm run tunnel
 ```
