@@ -5,6 +5,8 @@
  * - GET /health : Health check and service status probe
  * - POST /webhooks/razorpay : Real-time webhook ingestion (Day 1 & Day 2)
  * - GET /passport/:workerId : On-demand Credit Passport API (Day 3)
+ * - POST /worker/confirm : Inbound SMS confirmation replies (Day 4)
+ * - POST /worker/register, GET /worker/:workerId : Worker onboarding (Day 5)
  */
 
 const express = require('express');
@@ -12,6 +14,7 @@ const config = require('./config/env');
 const { razorpayWebhookHandler } = require('./webhooks/razorpayWebhookHandler');
 const { buildPassport } = require('./passport/buildPassport');
 const { handleConfirmationReply } = require('./worker/confirmationHandler');
+const { handleRegister, handleGetWorker } = require('./worker/registration');
 
 const app = express();
 
@@ -46,6 +49,10 @@ app.get('/passport/:workerId', (req, res) => {
 // Twilio sends form-encoded, not JSON, for inbound SMS webhooks - the
 // global express.json() above doesn't parse this, so it's scoped here.
 app.post('/worker/confirm', express.urlencoded({ extended: false }), handleConfirmationReply);
+
+// ── Section 5: Worker Onboarding (Day 5) ─────────────────────────────────────
+app.post('/worker/register', handleRegister);
+app.get('/worker/:workerId', handleGetWorker);
 
 // Start listening when executed directly as the entry point
 if (require.main === module) {
