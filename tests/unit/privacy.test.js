@@ -49,12 +49,22 @@ assert.strictEqual(lenderView.income_band, '₹10,000 - ₹25,000 / month');
 assert.strictEqual(lenderView.six_month_avg_income_inr, 24000);
 assert.strictEqual(lenderView.privacy.redacted, true);
 assert.strictEqual(lenderView.privacy.view_mode, 'lender_underwriting');
+// pii_never_collected, not pii_stripped - buildPassport() never includes
+// these fields to begin with, so nothing is actively removed here.
+assert.deepStrictEqual(
+  lenderView.privacy.pii_never_collected,
+  ['phone', 'vpa_address', 'bank_account_number', 'raw_transaction_ids']
+);
+assert.strictEqual(lenderView.privacy.pii_stripped, undefined, 'the old, inaccurate field name must not reappear');
 
-// Verify retention rails are masked
+// Verify retention rails are masked - the employer name is intentionally
+// preserved (see anonymizeRail's docstring), only the internal
+// worker/rail identifier is replaced.
 const maskedRailKeys = Object.keys(lenderView.breakdown.retention.retentionByRail);
 assert.ok(maskedRailKeys.every((k) => k.startsWith('Verified Rail #')));
 assert.ok(!maskedRailKeys.includes('RAIL_worker_private_EMP_ZEPTO'));
-console.log('  ✓ lender view redacts raw rail identifiers, attaches income band, and masks PII');
+assert.ok(maskedRailKeys.some((k) => k.includes('(ZEPTO)')), 'employer name should survive the masking, by design');
+console.log('  ✓ lender view masks internal rail identifiers (employer name intentionally preserved), attaches income band, states pii_never_collected accurately');
 
 // 4. Worker full view retains unredacted data
 const workerView = redactPassport(samplePassport, 'worker');

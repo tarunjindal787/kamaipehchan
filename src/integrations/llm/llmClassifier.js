@@ -12,7 +12,16 @@ const { getHistory } = require('../../db/transactionStore');
 // this is Google's own suggested replacement from that error response.
 const GEMINI_MODEL = 'gemini-3.6-flash';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const MAX_TOKENS = 300;
+// 300 was silently truncating every response: gemini-3.6-flash is a
+// "thinking" model whose internal reasoning tokens (confirmed live:
+// ~286-393 per call) count against the same maxOutputTokens budget as
+// the visible answer, so finishReason came back MAX_TOKENS before the
+// actual JSON ever appeared. 2048 confirmed live to reliably leave
+// enough room for both. Not aware of a confirmed REST field to disable
+// thinking directly (thinking_level exists in Google's docs for the
+// Python SDK, but the exact REST JSON field/casing isn't confirmed) -
+// this is the verified-safe fix rather than a guessed field name.
+const MAX_TOKENS = 2048;
 const MAX_HISTORY_IN_PROMPT = 5;
 
 const VALID_LABELS = new Set(Object.values(CLASSIFIER_LABELS));
@@ -44,7 +53,24 @@ async function classifyWithLLM(transaction) {
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: MAX_TOKENS },
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: MAX_TOKENS,
+          // Native JSON mode (confirmed against Google's API reference,
+          // not guessed) - more reliable than prompt wording alone.
+          // Gemini's schema format uses its own uppercase type strings,
+          // not standard lowercase JSON Schema.
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              label: { type: 'STRING', enum: Array.from(VALID_LABELS) },
+              confidence: { type: 'NUMBER' },
+              reasoning: { type: 'STRING' },
+            },
+            required: ['label', 'confidence', 'reasoning'],
+          },
+        },
       }),
     });
   } catch (err) {
@@ -114,14 +140,26 @@ function parseModelResponse(rawText, latency_ms) {
   try {
     parsed = JSON.parse(stripped);
   } catch (err) {
-    return {
-      label: CLASSIFIER_LABELS.NEEDS_REVIEW,
-      confidence: 0,
-      path: 'llm_assisted',
-      latency_ms,
-      parse_error: true,
-      reason: `Failed to parse LLM response as JSON: ${err.message}`,
-    };
+    // Belt-and-suspenders even with native JSON mode enabled (Gemini can
+    // still wrap output in prose, or truncate at the token limit) -
+    // try pulling out the first balanced-looking {...} block before
+    // giving up entirely.
+    const match = stripped.match(/\{[\s\S]*\}/);
+    try {
+      parsed = match ? JSON.parse(match[0]) : null;
+    } catch (err2) {
+      parsed = null;
+    }
+    if (!parsed) {
+      return {
+        label: CLASSIFIER_LABELS.NEEDS_REVIEW,
+        confidence: 0,
+        path: 'llm_assisted',
+        latency_ms,
+        parse_error: true,
+        reason: `Failed to parse LLM response as JSON: ${err.message}`,
+      };
+    }
   }
 
   if (!parsed || !VALID_LABELS.has(parsed.label) || typeof parsed.confidence !== 'number') {

@@ -6,17 +6,29 @@
  * Provides view-level selective disclosure:
  * - 'full' (Worker View): Unredacted access to individual employer rails, transaction histories, and raw metrics.
  * - 'lender' (Lender/Underwriter View): Privacy-preserving credit assessment.
- *   - Masks specific employer rail IDs with anonymized tokens (e.g. "Employer Rail #1").
+ *   - Masks the internal worker/rail identifier with an anonymized token
+ *     (e.g. "Verified Rail #1") - the employer name itself is intentionally
+ *     preserved (e.g. "Verified Rail #1 (ZEPTO)"), not hidden. See
+ *     anonymizeRail() below for why.
  *   - Computes income stability bands while hiding raw private metadata.
- *   - Strips any PII (phone numbers, full names, bank VPAs) before data leaves the trust boundary.
+ *   - buildPassport()'s output never contains phone numbers, full names, or
+ *     bank VPAs in the first place - there's nothing to strip here, see
+ *     pii_never_collected below.
  */
 
 /**
- * Anonymizes an employer rail ID into a deterministic, non-reversible label.
+ * Masks the internal worker/rail identifier portion of a rail ID, replacing
+ * it with a clean positional label. The employer name is deliberately
+ * NOT masked - "RAIL_worker_123_EMP_ZEPTO" becomes "Verified Rail #1 (ZEPTO)",
+ * not a fully anonymous "Employer Rail #1". This is a deliberate design
+ * choice (a lender arguably needs to know which employers back a worker's
+ * income for "verified income" to mean anything), not an oversight - but
+ * it is pending explicit confirmation that this is the intended privacy
+ * boundary, not yet signed off on.
  *
  * @param {string} railId - e.g. "RAIL_worker_123_EMP_ZEPTO"
  * @param {number} index - Numerical index for clean presentation
- * @returns {string} e.g. "Verified Employer Rail #1 (ZEPTO)" or "Verified Employer Rail #1"
+ * @returns {string} e.g. "Verified Rail #1 (ZEPTO)" or "Verified Rail #1"
  */
 function anonymizeRail(railId, index) {
   if (!railId) return `Employer Rail #${index + 1}`;
@@ -25,12 +37,10 @@ function anonymizeRail(railId, index) {
   return `Verified Rail #${index + 1}${employerTag}`;
 }
 
-/**
- * Maps a numeric average income to a standardized credit bracket.
- *
- * @param {number|null} amountPaise - Amount in paise
- * @returns {string} Human-readable income bracket
- */
+// Bracket boundaries (₹10k/25k/50k/1L) are a placeholder heuristic, not a
+// validated credit-bureau standard - flag for review during the pilot
+// (Section 10), same caveat as isiEngine.js's weights and regularity.js's
+// formula.
 function getIncomeBand(amountPaise) {
   if (amountPaise === null || amountPaise === undefined) return 'No Verified Income History';
   const amountInr = Math.round(amountPaise / 100);
@@ -85,6 +95,10 @@ function redactPassport(passport, view = 'full') {
     six_month_avg_income_inr: passport.six_month_avg_income ? Math.round(passport.six_month_avg_income / 100) : null,
     income_band: getIncomeBand(passport.six_month_avg_income),
     weights_used: passport.weights_used,
+    // consistency_rating / stability_rating cutoffs (80/50) are a
+    // placeholder heuristic, not validated against real pilot data -
+    // flag for review during the pilot (Section 10), same caveat as
+    // isiEngine.js's weights and regularity.js's formula.
     breakdown: {
       regularity: {
         score: passport.breakdown.regularity.score,
@@ -105,7 +119,11 @@ function redactPassport(passport, view = 'full') {
     privacy: {
       redacted: true,
       view_mode: 'lender_underwriting',
-      pii_stripped: ['phone', 'vpa_address', 'bank_account_number', 'raw_transaction_ids'],
+      // buildPassport()'s output never contains these fields to begin
+      // with (see src/passport/buildPassport.js) - there's nothing
+      // actively "stripped" here. This states what's absent, not a
+      // claim of removal.
+      pii_never_collected: ['phone', 'vpa_address', 'bank_account_number', 'raw_transaction_ids'],
     },
     generated_at: passport.generated_at,
   };

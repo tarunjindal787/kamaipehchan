@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { handleRegister } = require('../../src/worker/registration');
-const { handleAddEmployer } = require('../../src/worker/employerLinking');
+const { handleAddEmployer, buildReferenceId } = require('../../src/worker/employerLinking');
 
 console.log('Running unit test: tests/unit/employerLinking.test.js');
 
@@ -68,6 +68,22 @@ async function run() {
     if (origKey !== undefined) process.env.RAZORPAY_KEY_ID = origKey;
     if (origSecret !== undefined) process.env.RAZORPAY_KEY_SECRET = origSecret;
   }
+
+  // --- reference_id never exceeds Razorpay's 40-char limit, even with a
+  // deliberately long worker_id AND a long employer name (confirmed live:
+  // Razorpay actually rejects anything over 40 with a real 400) ---
+  const longWorkerId = 'worker_a_very_long_explicit_identifier_someone_chose';
+  const longSlug = 'AnExtremelyLongEmployerNameThatWouldNeverFit'.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const longRefId = buildReferenceId(longWorkerId, longSlug);
+  assert.ok(longRefId.length <= 40, `reference_id must be <= 40 chars, got ${longRefId.length}: "${longRefId}"`);
+  assert.ok(longRefId.startsWith('RAIL_'));
+  assert.ok(longRefId.includes('_EMP_'));
+  console.log(`  ✓ long worker_id + long employer name -> composite truncated to ${longRefId.length} chars, never exceeds 40`);
+
+  // Short inputs must be completely unaffected - no needless truncation.
+  const shortRefId = buildReferenceId('worker_abc123', 'ZEPTO');
+  assert.strictEqual(shortRefId, 'RAIL_worker_abc123_EMP_ZEPTO');
+  console.log('  ✓ short worker_id + short employer name -> unaffected, no needless truncation');
 
   console.log('✅ Unit test passed: employer linking endpoint verified (Razorpay-unconfigured / mock path).');
 }
