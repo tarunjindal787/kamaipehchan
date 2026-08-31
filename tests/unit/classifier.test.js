@@ -3,6 +3,15 @@ const { classifyTransaction, CLASSIFIER_LABELS } = require('../../src/classifier
 const { recordTransaction } = require('../../src/db/transactionStore');
 const seedPayloads = require('../benchmark_payloads/synthetic/seed_payloads.json');
 
+// This suite tests deterministic-vs-not routing, not the real LLM - force
+// LLM unavailable regardless of what's actually in .env, otherwise the 10
+// "ambiguous" fixtures below each make a real, slow call to whatever LLM
+// is genuinely configured (confirmed live: real credentials turned this
+// suite into a multi-minute run against Gemini). Safe to delete here
+// (after the requires above, so dotenv's one-time load already ran) -
+// config.llm.apiKey is a live getter, not a snapshot.
+delete process.env.LLM_API_KEY;
+
 console.log('Running unit test: tests/unit/classifier.test.js');
 
 async function run() {

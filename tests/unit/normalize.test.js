@@ -1,6 +1,7 @@
 const assert = require('assert');
 const { normalizeTransaction } = require('../../src/webhooks/normalize');
 const realCapturedEvent = require('../benchmark_payloads/real_test_mode/sample_credit_event.json');
+const referenceIdTestEvent = require('../benchmark_payloads/real_test_mode/payment_link_reference_id_test.json');
 
 console.log('Running unit test: tests/unit/normalize.test.js');
 
@@ -27,17 +28,17 @@ assert.strictEqual(vaResult.credited_at, Math.floor(Date.parse('2026-01-01T09:15
 assert.strictEqual(vaResult.worker_id, 'worker_test_1');
 console.log('  ✓ virtual_account.credited shape normalizes correctly (credited_at converted to Unix seconds)');
 
-// Real payment.captured sample (tests/benchmark_payloads/real_test_mode/sample_credit_event.json).
-// KNOWN GAP: this sample predates reference_id-on-Payment-Link testing and has
-// neither virtual_account_id nor reference_id, so rail_id is correctly null here.
-// This documents the actual unresolved open question (does reference_id survive
-// into a real webhook) rather than hiding it - still unconfirmed, blocked on
-// real Razorpay keys and an actual paid Payment Link webhook capture.
+// Real payment.captured sample (tests/benchmark_payloads/real_test_mode/sample_credit_event.json,
+// captured 2026-08-22). This one predates any employer_ref in its notes
+// (just gig_type/worker_id/worker_name), so it still has nothing for the
+// composite fallback to build from - rail_id is correctly null here too,
+// for a different reason than it used to be (see below - reference_id
+// itself is now confirmed to never appear on payment.captured at all).
 const realResult = normalizeTransaction(realCapturedEvent);
 assert.strictEqual(
   realResult.rail_id,
   null,
-  'known gap: this real sample has no virtual_account_id or reference_id'
+  'this specific sample has no virtual_account_id, reference_id, or notes.employer_ref'
 );
 assert.strictEqual(realResult.amount, 50000);
 assert.strictEqual(realResult.worker_id, 'WRK-001');
@@ -45,13 +46,41 @@ assert.strictEqual(realResult.note, '#TSYkTArzAN9AGy');
 assert.strictEqual(realResult.credited_at, 1787346001);
 assert.strictEqual(realResult.payer_identifier, '+917877722029', 'payer_identifier should come from the real contact field');
 console.log(
-  '  ✓ real payment.captured sample: amount/worker_id/note/credited_at extracted correctly; ' +
-    'rail_id documented as null (known gap, not a bug - see comment above)'
+  '  ✓ real payment.captured sample (2026-08-22): amount/worker_id/note/credited_at extracted correctly; ' +
+    'rail_id null (this sample predates notes.employer_ref, not a bug)'
 );
 
-// Hypothetical payment-link shape with reference_id present. No real webhook
-// sample with this field exists yet, so this only proves the fallback logic
-// itself is correct - NOT that a real Razorpay webhook actually looks like this.
+// Real paid Payment Link webhook (tests/benchmark_payloads/real_test_mode/
+// payment_link_reference_id_test.json, captured 2026-08-30) - a genuine
+// end-to-end test: registered a real worker, created a real employer
+// Payment Link via /worker/:workerId/employer, paid it with a real test
+// card, captured the actual payment.captured webhook. THE DAY 1 QUESTION
+// IS NOW CLOSED: reference_id does not appear anywhere in
+// payload.payment.entity for a real payment.captured event, confirmed
+// directly from this raw payload, not inferred. notes.worker_id and
+// notes.employer_ref are what's actually load-bearing, since we set
+// those ourselves at Payment Link creation - that's what the composite
+// rail_id fallback in normalize.js now uses.
+const referenceIdTestResult = normalizeTransaction(referenceIdTestEvent);
+assert.strictEqual(
+  referenceIdTestEvent.payload.payment.entity.reference_id,
+  undefined,
+  'confirms reference_id is genuinely absent from the raw payload, not just unread'
+);
+assert.strictEqual(referenceIdTestResult.rail_id, 'worker_4f85989b_ZEPTO');
+assert.strictEqual(referenceIdTestResult.worker_id, 'worker_4f85989b');
+assert.strictEqual(referenceIdTestResult.amount, 100);
+console.log(
+  '  ✓ real paid Payment Link webhook (2026-08-30): reference_id confirmed absent from ' +
+    'payload.payment.entity; rail_id resolves via the notes-based composite fallback ' +
+    '("worker_4f85989b_ZEPTO") instead of null - closes the gap open since Day 1'
+);
+
+// Hypothetical payment-link shape with reference_id present. Kept to prove
+// the reference_id fallback tier itself is implemented correctly, in case
+// a future event type (e.g. payment_link.paid, still unverified as of
+// 2026-08-30 - see docs/DATA_SCHEMAS.md) does carry it on
+// payload.payment_link.entity rather than payload.payment.entity.
 const paymentLinkEvent = {
   event: 'payment.captured',
   payload: {
@@ -73,10 +102,10 @@ assert.strictEqual(plResult.amount, 50000);
 assert.strictEqual(plResult.worker_id, 'worker_hypothetical');
 console.log(
   '  ✓ hypothetical reference_id-bearing payload normalizes rail_id correctly ' +
-    '(fallback logic only - untested against a real webhook)'
+    '(fallback logic only - reference_id itself is confirmed absent in practice)'
 );
 
 console.log(
-  '✅ Unit test passed: normalizeTransaction covers virtual_account, real payment.captured, ' +
-    'and reference_id shapes.'
+  '✅ Unit test passed: normalizeTransaction covers virtual_account, real payment.captured ' +
+    '(including the real reference_id-investigation payload), and the notes-based fallback.'
 );

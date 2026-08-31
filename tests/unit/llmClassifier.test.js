@@ -3,6 +3,14 @@ const assert = require('assert');
 console.log('Running unit test: tests/unit/llmClassifier.test.js');
 
 async function run() {
+  // Require first, delete after: config/env.js's require('dotenv').config()
+  // only runs on this first require and won't override an already-set
+  // process.env var - but deleting LLM_API_KEY BEFORE this require would
+  // re-open the door for dotenv to inject the real .env value right back
+  // in, which is exactly what happened once .env stopped being a placeholder.
+  const { classifyWithLLM } = require('../../src/integrations/llm/llmClassifier');
+  const { CLASSIFIER_LABELS } = require('../../src/classifier/labels');
+
   // --- Scenario 1: LLM_API_KEY unset -> safe fallback, no real API call ---
   delete process.env.LLM_API_KEY;
 
@@ -11,9 +19,6 @@ async function run() {
     fetchCalled = true;
     throw new Error('fetch should not be called when LLM_API_KEY is unset');
   };
-
-  const { classifyWithLLM } = require('../../src/integrations/llm/llmClassifier');
-  const { CLASSIFIER_LABELS } = require('../../src/classifier/labels');
 
   const unsetResult = await classifyWithLLM({
     rail_id: 'va_test_unset',

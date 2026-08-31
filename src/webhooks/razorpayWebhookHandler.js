@@ -17,11 +17,17 @@ async function razorpayWebhookHandler(req, res) {
   }
 
   const event = req.body;
-  const eventId =
+  // Prefixed with event type (Day 6 fix): payment.captured and
+  // payment_link.paid both carry payload.payment.entity.id for the same
+  // underlying payment, so the bare ID collided across genuinely
+  // different event types - the second one was silently dropped as a
+  // "duplicate" of the first.
+  const eventId = `${event?.event}:${
     event?.payload?.payment?.entity?.id ||
     event?.payload?.virtual_account?.entity?.id ||
     event?.id ||
-    JSON.stringify(event).slice(0, 50);
+    JSON.stringify(event).slice(0, 50)
+  }`;
 
   if (isDuplicateEvent(eventId)) {
     console.log(`[webhook] Duplicate event ${eventId} - already processed, ignoring`);

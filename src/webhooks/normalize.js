@@ -29,7 +29,16 @@ function normalizeTransaction(rawWebhookPayload) {
     {};
 
   return {
-    rail_id: entity.virtual_account_id ?? entity.reference_id ?? null,
+    // Confirmed live (Day 6): a real payment.captured event carries neither
+    // virtual_account_id nor reference_id - notes.worker_id + notes.employer_ref
+    // are what's actually load-bearing, since we control those ourselves at
+    // Payment Link creation regardless of which event type fires.
+    rail_id:
+      entity.virtual_account_id ??
+      entity.reference_id ??
+      (entity.notes?.worker_id && entity.notes?.employer_ref
+        ? `${entity.notes.worker_id}_${entity.notes.employer_ref}`
+        : null),
     amount: entity.amount ?? null,
     note: entity.notes?.note ?? entity.note ?? entity.description ?? '',
     credited_at: toUnixSeconds(entity.created_at ?? entity.credited_at ?? null),

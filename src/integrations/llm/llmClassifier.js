@@ -2,13 +2,16 @@ const config = require('../../config/env');
 const { CLASSIFIER_LABELS } = require('../../classifier/labels');
 const { getHistory } = require('../../db/transactionStore');
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-// NOTE: not a currently-known Anthropic model ID as of this writing - verify
-// against Anthropic's docs before relying on this. If it's wrong, the API
-// call fails and is caught below, falling back to needs_review rather than
-// silently misclassifying.
-const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
-const ANTHROPIC_VERSION = '2023-06-01';
+// Switched to Gemini (Day 6): the configured LLM_API_KEY doesn't match
+// Anthropic's sk-ant- format, and a real call to api.anthropic.com
+// confirmed a 401 invalid x-api-key. Not confirmed to be a genuine
+// Google API key either (those are normally AIzaSy...), but this is
+// cheap to verify empirically against the real endpoint rather than
+// argue about the key's format further.
+// gemini-2.0-flash returned 404 "no longer available" from a real call;
+// this is Google's own suggested replacement from that error response.
+const GEMINI_MODEL = 'gemini-3.6-flash';
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const MAX_TOKENS = 300;
 const MAX_HISTORY_IN_PROMPT = 5;
 
@@ -34,17 +37,14 @@ async function classifyWithLLM(transaction) {
 
   let response;
   try {
-    response = await fetch(ANTHROPIC_API_URL, {
+    response = await fetch(`${GEMINI_API_URL}?key=${encodeURIComponent(config.llm.apiKey)}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': config.llm.apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
       },
       body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: MAX_TOKENS,
-        messages: [{ role: 'user', content: prompt }],
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: MAX_TOKENS },
       }),
     });
   } catch (err) {
@@ -73,7 +73,7 @@ async function classifyWithLLM(transaction) {
   }
 
   const body = await response.json();
-  const rawText = body?.content?.[0]?.text || '';
+  const rawText = body?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
   return parseModelResponse(rawText, latency_ms);
 }
