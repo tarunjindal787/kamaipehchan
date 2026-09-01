@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KamaiPehchan</title>
+<style>
+  :root {
+    --ink: #1c1f26;
+    --ink-soft: #5b6169;
+    --ink-faint: #90959c;
+    --paper: #f6f4ef;
+    --surface: #ffffff;
+    --border: #e1ddd2;
+    --accent: #23615c;
+    --accent-dark: #184843;
+    --accent-soft: #e3efed;
+    --navy: #12161c;
+    --navy-line: #262c35;
+    --navy-ink-soft: #b9c2c9;
+    --navy-ink-faint: #6d757d;
+    --good: #5fb98a;
+    --bad: #d98b7d;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background: var(--navy);
+    color: #f4f2ec;
+    padding: clamp(24px, 5vw, 40px) clamp(20px, 6vw, 64px) clamp(48px, 8vw, 88px);
+  }
+  .hero-inner { max-width: 900px; margin: 0 auto; }
+
+  .top-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; margin-bottom: clamp(40px, 10vw, 88px);
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 7px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-serif); font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .brand-text { font-weight: 700; font-size: 15.5px; letter-spacing: -0.01em; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--navy-ink-soft);
+    border: 1px solid var(--navy-line);
+    border-radius: 999px;
+    padding: 6px 13px 6px 10px;
+  }
+  .status-pill .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--navy-ink-faint);
+    flex-shrink: 0;
+  }
+  .status-pill.is-live .dot { background: var(--good); }
+  .status-pill.is-down .dot { background: var(--bad); }
+  .status-pill .status-time { color: var(--navy-ink-faint); }
+
+  h1 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: clamp(30px, 5.5vw, 44px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    max-width: 620px;
+  }
+  .tagline {
+    font-size: clamp(15px, 2.2vw, 17px);
+    color: var(--navy-ink-soft);
+    line-height: 1.55;
+    max-width: 560px;
+    margin: 0 0 22px;
+  }
+  .problem {
+    font-size: 14.5px;
+    color: #9aa2a9;
+    line-height: 1.7;
+    max-width: 560px;
+    margin: 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--navy-line);
+  }
+
+  /* ---------- Nav cards ---------- */
+  .section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: clamp(40px, 8vw, 64px) clamp(20px, 6vw, 64px) 0;
+  }
+  .section-label {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--ink-faint); margin: 0 0 20px;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .nav-card {
+    background: var(--surface);
+    padding: 24px 22px;
+    text-decoration: none;
+    color: var(--ink);
+    display: block;
+    transition: background 0.15s ease;
+  }
+  .nav-card:hover { background: var(--accent-soft); }
+  .nav-card .index { font-family: var(--font-serif); font-size: 12.5px; color: var(--ink-faint); margin-bottom: 12px; }
+  .nav-card h2 {
+    font-family: var(--font-serif); font-size: 19px; font-weight: 700; margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .nav-card p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 14px; }
+  .nav-card .go { font-size: 12.5px; font-weight: 600; color: var(--accent); }
+  .nav-card .go::after { content: " \2192"; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px clamp(20px, 6vw, 64px) 56px;
+    margin-top: clamp(40px, 8vw, 64px);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: baseline;
+    flex-wrap: wrap; gap: 12px;
+    font-size: 12.5px; color: var(--ink-faint);
+  }
+  footer a { font-weight: 600; color: var(--ink-soft); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  footer .colophon { max-width: 480px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="top-row">
+      <div class="brand">
+        <div class="brand-mark">KP</div>
+        <div class="brand-text">KamaiPehchan</div>
+      </div>
+      <div class="status-pill" id="status-pill">
+        <span class="dot"></span>
+        <span id="status-text">Checking system status&hellip;</span>
+      </div>
+    </div>
+
+    <h1>Verifiable income and credit passport for multi-employer informal workers</h1>
+    <p class="tagline">A single, lender-ready record of income built from real, confirmed payments &mdash; not a self-reported form.</p>
+    <p class="problem">Workers earning across three to five unlinked employers are effectively invisible to lenders &mdash; not because they earn too little, but because that income is fragmented across payment apps with no common record. KamaiPehchan aggregates and verifies those payments into one structured income history a lender can actually underwrite against.</p>
+  </div>
+</div>
+
+<div class="section">
+  <p class="section-label">Explore the product</p>
+  <div class="card-grid">
+    <a class="nav-card" href="/onboarding.html">
+      <div class="index">01</div>
+      <h2>Worker Onboarding</h2>
+      <p>Register your identity and link each employer to a verified payment rail.</p>
+      <span class="go">Start onboarding</span>
+    </a>
+    <a class="nav-card" href="/passport.html">
+      <div class="index">02</div>
+      <h2>Credit Passport</h2>
+      <p>The worker's own view of their Income Stability Index and its breakdown.</p>
+      <span class="go">View a passport</span>
+    </a>
+    <a class="nav-card" href="/dashboard.html">
+      <div class="index">03</div>
+      <h2>Lender Dashboard</h2>
+      <p>The redacted underwriting view lenders use to assess an applicant.</p>
+      <span class="go">Open dashboard</span>
+    </a>
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/tarunjindal787/kamaipehchan">github.com/tarunjindal787/kamaipehchan</a>
+  <span class="colophon">Built on Razorpay Payment Links and webhooks. Scoring is deterministic; AI handles only ambiguous transaction classification.</span>
+</footer>
+
+<script>
+(function () {
+  var pill = document.getElementById('status-pill');
+  var text = document.getElementById('status-text');
+
+  function setState(cls, message, checkedAt) {
+    pill.className = 'status-pill ' + cls;
+    var suffix = checkedAt ? ' <span class="status-time">&middot; checked ' + checkedAt + '</span>' : '';
+    text.innerHTML = message + suffix;
+  }
+
+  fetch('/health')
+    .then(function (res) {
+      if (!res.ok) throw new Error('status ' + res.status);
+      return res.json();
+    })
+    .then(function () {
+      setState('is-live', 'System live', new Date().toLocaleTimeString());
+    })
+    .catch(function () {
+      setState('is-down', 'System unavailable', new Date().toLocaleTimeString());
+    });
+})();
+</script>
+
+</body>
+</html>

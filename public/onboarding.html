@@ -5,138 +5,207 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>KamaiPehchan - Worker Onboarding</title>
   <style>
-    /* Styling inspired by passport.html for a unified design language */
     :root {
-      --bg-color: #f7f9fc;
-      --card-bg: #ffffff;
-      --text-main: #1a202c;
-      --text-muted: #718096;
-      --border-color: #e2e8f0;
-      --primary: #3182ce;
-      --primary-hover: #2b6cb0;
-      --success: #38a169;
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --ink: #1c1f26;
+      --ink-soft: #5b6169;
+      --ink-faint: #90959c;
+      --paper: #f6f4ef;
+      --surface: #ffffff;
+      --surface-alt: #edeae2;
+      --border: #e1ddd2;
+      --accent: #23615c;
+      --accent-dark: #184843;
+      --accent-soft: #e3efed;
+      --navy: #12161c;
+      --good: #3c6e4f;
+      --good-bg: #e7efe9;
+      --bad: #9c3b2e;
+      --bad-bg: #f3e6e3;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
     }
+    * { box-sizing: border-box; }
     body {
-      margin: 0; padding: 20px;
-      background: var(--bg-color); color: var(--text-main);
-      font-family: var(--font-family);
+      margin: 0;
+      background: var(--paper); color: var(--ink);
+      font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
     }
-    .container {
-      max-width: 600px; margin: 0 auto;
+    .page {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: clamp(20px, 5vw, 48px) clamp(16px, 5vw, 24px) 72px;
     }
-    h1, h2, h3 { margin-top: 0; }
+
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--navy); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-serif); font-weight: 700; font-size: 14px;
+    }
+    .brand-text { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+    .brand-text span { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size: 13px; }
+
+    h1, h2, h3 { margin: 0; font-family: var(--font-serif); font-weight: 700; letter-spacing: -0.01em; }
+    h2 { font-size: 22px; }
+    h3 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-sans); color: var(--ink-soft); font-weight: 700; }
+
+    .lede { color: var(--ink-soft); font-size: 14px; line-height: 1.6; margin: 8px 0 22px; max-width: 460px; }
+
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: clamp(20px, 5vw, 30px);
+      margin-bottom: 20px;
+      box-shadow: 0 1px 2px rgba(20, 20, 15, 0.03);
     }
+
     .form-group { margin-bottom: 16px; }
-    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--ink-soft); }
     input[type="text"], input[type="tel"] {
       width: 100%; padding: 10px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px; font-size: 16px;
+      border: 1px solid var(--border);
+      background: var(--paper);
+      border-radius: 6px; font-size: 15px; color: var(--ink);
+      font-family: var(--font-sans);
       box-sizing: border-box;
       outline: none;
     }
     input[type="text"]:focus, input[type="tel"]:focus {
-      border-color: var(--primary);
+      border-color: var(--accent);
+      background: var(--surface);
     }
     button {
-      background: var(--primary); color: #fff;
+      background: var(--accent); color: #fff;
       border: none; border-radius: 6px;
-      padding: 12px 16px; font-size: 16px; font-weight: 600;
+      padding: 11px 18px; font-size: 14.5px; font-weight: 600;
       cursor: pointer; width: 100%;
-      transition: background 0.2s;
+      font-family: var(--font-sans);
+      transition: background 0.15s ease;
     }
-    button:hover { background: var(--primary-hover); }
-    button:disabled { background: var(--text-muted); cursor: not-allowed; }
-    
+    button:hover { background: var(--accent-dark); }
+    button:disabled { background: var(--ink-faint); cursor: not-allowed; }
+
+    .worker-id-strip {
+      display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+      background: var(--surface-alt);
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 4px;
+      margin-bottom: 22px;
+      font-size: 13px;
+    }
+    .worker-id-strip strong { font-weight: 600; }
+    .worker-id-strip .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; color: var(--ink-soft); word-break: break-all; }
+
     .rail-card {
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 16px; margin-top: 12px;
-      background: #fdfdfd;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px; margin-top: 10px;
     }
-    .rail-card h4 { margin: 0 0 8px 0; color: var(--primary); }
-    .rail-id { font-family: monospace; font-size: 13px; color: var(--text-muted); word-break: break-all; }
+    .rail-card h4 { margin: 0 0 6px; font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--ink); }
+    .rail-id { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 12.5px; color: var(--ink-soft); word-break: break-all; }
     .status-badge {
-      display: inline-block; padding: 4px 8px;
-      background: #e6fffa; color: var(--success);
-      font-size: 12px; font-weight: bold; border-radius: 4px;
+      display: inline-block; padding: 3px 9px;
+      background: var(--good-bg); color: var(--good);
+      font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
+      border-radius: 999px;
       margin-top: 8px;
     }
-    
-    #alert-box {
-      padding: 12px; border-radius: 6px; margin-bottom: 24px;
-      display: none; font-size: 14px;
-    }
-    .alert-error { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
-    .alert-success { background: #f0fff4; color: #2f855a; border: 1px solid #9ae6b4; }
 
-    /* Hidden state */
+    .rails-empty { color: var(--ink-faint); font-size: 13.5px; }
+
+    #alert-box {
+      padding: 11px 14px; border-radius: 6px; margin-bottom: 22px;
+      display: none; font-size: 13.5px; border: 1px solid transparent;
+    }
+    .alert-error { background: var(--bad-bg); color: var(--bad); border-color: #e3c3ba; }
+    .alert-success { background: var(--good-bg); color: var(--good); border-color: #c4dccc; }
+
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 28px 0 18px; }
+
+    .passport-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--accent); font-weight: 600; font-size: 13.5px; text-decoration: none;
+    }
+    .passport-link:hover { text-decoration: underline; }
+
+    .page-footer {
+      margin-top: 36px; padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--ink-faint);
+    }
+
     .hidden { display: none; }
   </style>
 </head>
 <body>
 
-<div class="container">
+<div class="page">
+  <div class="brand">
+    <div class="brand-mark">KP</div>
+    <div class="brand-text">KamaiPehchan<span>Worker Onboarding</span></div>
+  </div>
+
   <div id="alert-box"></div>
 
   <!-- Step 1: Worker Registration -->
   <div class="card" id="section-register">
-    <h2>Worker Registration</h2>
-    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-      Register your identity to start building your verifiable Credit Passport.
+    <h2>Register your identity</h2>
+    <p class="lede">
+      Registering opens a verifiable Credit Passport tied to your phone number and, optionally, your UPI address.
     </p>
     <form id="form-register">
       <div class="form-group">
-        <label for="reg-name">Full Name</label>
+        <label for="reg-name">Full name</label>
         <input type="text" id="reg-name" placeholder="e.g. Ravi Kumar" required>
       </div>
       <div class="form-group">
-        <label for="reg-phone">Phone Number</label>
+        <label for="reg-phone">Phone number</label>
         <input type="tel" id="reg-phone" placeholder="+919876543210" required>
       </div>
       <div class="form-group">
-        <label for="reg-vpa">Primary UPI VPA (Optional)</label>
+        <label for="reg-vpa">Primary UPI VPA (optional)</label>
         <input type="text" id="reg-vpa" placeholder="ravi@okhdfcbank">
       </div>
-      <button type="submit" id="btn-register">Register Identity</button>
+      <button type="submit" id="btn-register">Register identity</button>
     </form>
   </div>
 
   <!-- Step 2: Employer Rail Linking (Hidden until registered) -->
   <div class="card hidden" id="section-employer">
-    <h2>Add Employer</h2>
-    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-      Generate a verified payment link for your employer. Payments sent to this link automatically build your ISI score.
+    <h2>Link an employer</h2>
+    <p class="lede">
+      Each employer gets a dedicated payment rail. Payments received on it are what build your ISI score &mdash; no manual entry.
     </p>
-    <div style="background: #ebf8ff; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;">
-      <strong>Your Worker ID:</strong> <span id="display-worker-id" style="font-family: monospace;"></span>
+    <div class="worker-id-strip">
+      <strong>Worker ID</strong> <span class="mono" id="display-worker-id"></span>
     </div>
 
     <form id="form-employer">
       <div class="form-group">
-        <label for="emp-name">Employer / Aggregator Name</label>
+        <label for="emp-name">Employer / aggregator name</label>
         <input type="text" id="emp-name" placeholder="e.g. Zepto, Swiggy, local shop" required>
       </div>
-      <button type="submit" id="btn-employer">Generate Payment Link</button>
+      <button type="submit" id="btn-employer">Generate payment link</button>
     </form>
 
-    <h3 style="margin-top: 32px; margin-bottom: 16px;">Your Payment Rails</h3>
+    <hr class="section-divider" />
+
+    <h3>Payment rails</h3>
     <div id="rails-list">
-      <p style="color: var(--text-muted); font-size: 14px;">No rails generated yet.</p>
+      <p class="rails-empty">No rails generated yet.</p>
     </div>
-    
-    <div style="margin-top: 32px;">
-      <a href="#" id="view-passport-link" style="color: var(--primary); font-weight: 600; text-decoration: none;">&rarr; View My Credit Passport</a>
+
+    <div class="page-footer">
+      <a href="#" id="view-passport-link" class="passport-link">View my Credit Passport &rarr;</a>
     </div>
+  </div>
+
+  <div class="page-footer">
+    KamaiPehchan &mdash; employer-verified income, not self-reported.
   </div>
 </div>
 
@@ -172,23 +241,23 @@
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.error || 'Registration failed');
-      
+
       currentWorkerId = data.worker_id;
-      showAlert('Registration successful! Worker ID generated.');
-      
+      showAlert('Identity registered. Worker ID assigned below.');
+
       // Transition UI
       document.getElementById('section-register').classList.add('hidden');
       document.getElementById('section-employer').classList.remove('hidden');
       document.getElementById('display-worker-id').textContent = currentWorkerId;
       document.getElementById('view-passport-link').href = '/passport.html?worker_id=' + encodeURIComponent(currentWorkerId);
-      
+
     } catch (err) {
       showAlert(err.message, 'error');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Register Identity';
+      btn.textContent = 'Register identity';
     }
   });
 
@@ -212,31 +281,31 @@
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      
+
       if (!res.ok) throw new Error(data.error || 'Failed to generate rail');
-      
-      showAlert('Payment rail created successfully!');
+
+      showAlert('Payment rail created.');
       document.getElementById('emp-name').value = '';
-      
+
       // Add to list
       const list = document.getElementById('rails-list');
       if (list.querySelector('p')) list.innerHTML = ''; // clear empty message
-      
+
       const card = document.createElement('div');
       card.className = 'rail-card';
       card.innerHTML = `
         <h4>${data.employer_name}</h4>
         <div class="rail-id">ID: ${data.reference_id}</div>
-        <div class="rail-id" style="margin-top:4px;">Link: ${data.payment_link_url || 'Mock Mode (Not Configured)'}</div>
+        <div class="rail-id" style="margin-top:4px;">Link: ${data.payment_link_url || 'Mock mode (Razorpay not configured)'}</div>
         <div class="status-badge">Active</div>
       `;
       list.prepend(card);
-      
+
     } catch (err) {
       showAlert(err.message, 'error');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Generate Payment Link';
+      btn.textContent = 'Generate payment link';
     }
   });
 </script>
