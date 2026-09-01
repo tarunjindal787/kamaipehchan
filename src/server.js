@@ -10,6 +10,7 @@
  * - POST /worker/:workerId/employer, GET /worker/:workerId/employers : Employer linking (Day 5)
  */
 
+const path = require('path');
 const express = require('express');
 const config = require('./config/env');
 const { razorpayWebhookHandler } = require('./webhooks/razorpayWebhookHandler');
@@ -38,6 +39,10 @@ app.use(
     },
   })
 );
+
+// Static demo UI (public/passport.html) - self-contained, no build step,
+// fetches GET /passport/:workerId client-side.
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // ── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

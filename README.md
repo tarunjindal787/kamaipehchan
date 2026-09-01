@@ -42,6 +42,21 @@ The system processes incoming financial events through a multi-stage pipeline:
 
 ---
 
+## Cost & Infrastructure
+
+This project is built entirely on free tiers - no payment method has been added to any service, and no feature has been built assuming a paid tier.
+
+| Service | Cost | Notes |
+| :--- | :--- | :--- |
+| Razorpay | Free | Test Mode only (`rzp_test_...` keys) - no real transactions, no fees |
+| Gemini API | Free | Free tier, 20 requests/day/project/model hard cap (confirmed live via a real `429 RESOURCE_EXHAUSTED`) |
+| Railway | Free | $5 trial credit, 30 days, no card on file - real usage to date is a few cents, well within the credit |
+| ngrok | Free | Basic tunneling tier - the configured credential is a tunnel authtoken (not an API key), so the plan tier isn't independently verifiable via API, but nothing in this project's usage (a single ad-hoc tunnel) suggests otherwise |
+| GitHub | Free | Public repo (confirmed) |
+| Twilio | Not yet configured | `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN` are unset - deferred; free trial available if added later |
+
+---
+
 ## API Endpoints
 
 See the full [API Reference](docs/API_REFERENCE.md) for request/response schemas and curl examples.

@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Credit Passport - KamaiPehchan</title>
+<style>
+  :root {
+    --ink: #0f172a;
+    --ink-soft: #475569;
+    --ink-faint: #94a3b8;
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --border: #e6e9f2;
+    --brand: #1d4ed8;
+    --brand-soft: #eef2ff;
+    --good: #0f9d58;
+    --good-bg: #e6f6ed;
+    --warn: #b7791f;
+    --warn-bg: #fdf3dc;
+    --bad: #c0392b;
+    --bad-bg: #fbe9e7;
+    --track: #e8ecf5;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: clamp(20px, 5vw, 48px) clamp(16px, 5vw, 24px) 64px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .brand-text {
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-text span {
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-left: 6px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: clamp(20px, 5vw, 36px);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px -16px rgba(15, 23, 42, 0.12);
+  }
+
+  /* ---------- Loading state ---------- */
+  #loading { text-align: center; padding: 64px 16px; color: var(--ink-soft); }
+  .spinner {
+    width: 34px; height: 34px; margin: 0 auto 18px;
+    border: 3px solid var(--track);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- Empty / insufficient-data / error state ---------- */
+  #empty { text-align: center; padding: 48px 16px; }
+  #empty .icon {
+    width: 56px; height: 56px; margin: 0 auto 20px;
+    border-radius: 50%;
+    background: var(--brand-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  #empty h2 { font-size: 19px; margin: 0 0 8px; }
+  #empty p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.6; margin: 0; max-width: 420px; margin-inline: auto; }
+
+  /* ---------- Result state ---------- */
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .worker-id {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    word-break: break-all;
+  }
+  .generated-at { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+
+  .score-section {
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 5vw, 36px);
+    padding: 22px 0 26px;
+    flex-wrap: wrap;
+  }
+
+  .ring-wrap { position: relative; width: 152px; height: 152px; flex-shrink: 0; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--track); stroke-width: 12; }
+  .ring-value { fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
+  .ring-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ring-number { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .ring-label { font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+  .score-meta { flex: 1; min-width: 200px; }
+  .score-title { font-size: 15px; color: var(--ink-soft); margin: 0 0 10px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+  .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .badge.high { background: var(--good-bg); color: var(--good); }
+  .badge.medium { background: var(--warn-bg); color: var(--warn); }
+  .badge.low, .badge.none { background: var(--bad-bg); color: var(--bad); }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .stat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .stat-value { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0 22px; }
+
+  .section-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--ink-soft); margin: 0 0 16px;
+  }
+
+  .gauge-row { margin-bottom: 18px; }
+  .gauge-row:last-child { margin-bottom: 0; }
+  .gauge-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .gauge-name { font-size: 14px; font-weight: 600; }
+  .gauge-weight { font-size: 12px; color: var(--ink-faint); }
+  .gauge-track { height: 9px; border-radius: 999px; background: var(--track); overflow: hidden; }
+  .gauge-fill { height: 100%; border-radius: 999px; transition: width 0.8s ease; }
+  .gauge-score { font-size: 12.5px; color: var(--ink-soft); margin-top: 5px; }
+
+  .footer-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 22px;
+  }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 480px) {
+    .score-section { justify-content: center; text-align: center; }
+    .score-meta { text-align: center; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="brand">
+    <div class="brand-mark">KP</div>
+    <div class="brand-text">KamaiPehchan<span>Verifiable Income &amp; Credit Passport</span></div>
+  </div>
+
+  <div class="card">
+    <div id="loading">
+      <div class="spinner"></div>
+      <div>Loading Credit Passport&hellip;</div>
+    </div>
+
+    <div id="empty" hidden>
+      <div class="icon">📄</div>
+      <h2 id="empty-title">No verified income history yet</h2>
+      <p id="empty-text">Once this worker has confirmed transactions on file, their Credit Passport will appear here.</p>
+    </div>
+
+    <div id="result" hidden>
+      <div class="header-row">
+        <div class="worker-id" id="worker-id"></div>
+        <div class="generated-at" id="generated-at"></div>
+      </div>
+
+      <div class="score-section">
+        <div class="ring-wrap">
+          <svg width="152" height="152" viewBox="0 0 152 152">
+            <circle class="ring-track" cx="76" cy="76" r="66"></circle>
+            <circle class="ring-value" id="ring-value" cx="76" cy="76" r="66"></circle>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-number" id="isi-number">-</div>
+            <div class="ring-label">ISI Score</div>
+          </div>
+        </div>
+        <div class="score-meta">
+          <p class="score-title">Income Stability Index (0&ndash;100)</p>
+          <span class="badge" id="confidence-badge"></span>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-value" id="employer-count">-</div>
+              <div class="stat-label">Active employers</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="avg-income">-</div>
+              <div class="stat-label">6-month avg. income</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <p class="section-title">Score Breakdown</p>
+      <div id="breakdown"></div>
+
+      <p class="footer-note">Generated on-demand from confirmed, worker-verified transactions only.</p>
+    </div>
+
+    <div id="error" hidden>
+      <div class="icon">⚠️</div>
+      <h2>Couldn't load this Credit Passport</h2>
+      <p id="error-text">Something went wrong talking to the server.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var CIRCUMFERENCE = 2 * Math.PI * 66;
+
+  function scoreColor(score) {
+    if (score >= 80) return '#0f9d58';
+    if (score >= 50) return '#b7791f';
+    return '#c0392b';
+  }
+
+  function formatINR(paise) {
+    if (typeof paise !== 'number') return '—';
+    var rupees = Math.round(paise / 100);
+    return '₹' + rupees.toLocaleString('en-IN');
+  }
+
+  function show(id) {
+    ['loading', 'empty', 'result', 'error'].forEach(function (name) {
+      document.getElementById(name).hidden = name !== id;
+    });
+  }
+
+  function renderGauge(container, label, score, weight) {
+    var row = document.createElement('div');
+    row.className = 'gauge-row';
+    row.innerHTML =
+      '<div class="gauge-head">' +
+        '<span class="gauge-name">' + label + '</span>' +
+        '<span class="gauge-weight">' + Math.round(weight * 100) + '% weight</span>' +
+      '</div>' +
+      '<div class="gauge-track"><div class="gauge-fill" style="width:0%;background:' + scoreColor(score) + '"></div></div>' +
+      '<div class="gauge-score">' + score + ' / 100</div>';
+    container.appendChild(row);
+    requestAnimationFrame(function () {
+      row.querySelector('.gauge-fill').style.width = Math.max(0, Math.min(100, score)) + '%';
+    });
+  }
+
+  function renderResult(passport) {
+    document.getElementById('worker-id').textContent = passport.worker_id;
+    document.getElementById('generated-at').textContent = passport.generated_at
+      ? 'Generated ' + new Date(passport.generated_at).toLocaleString()
+      : '';
+
+    var score = passport.isi_score;
+    document.getElementById('isi-number').textContent = score;
+
+    var ring = document.getElementById('ring-value');
+    ring.style.stroke = scoreColor(score);
+    ring.setAttribute('stroke-dasharray', CIRCUMFERENCE);
+    ring.setAttribute('stroke-dashoffset', CIRCUMFERENCE);
+    requestAnimationFrame(function () {
+      var offset = CIRCUMFERENCE * (1 - Math.max(0, Math.min(100, score)) / 100);
+      ring.setAttribute('stroke-dashoffset', offset);
+    });
+
+    var badge = document.getElementById('confidence-badge');
+    badge.textContent = (passport.confidence || 'unknown') + ' confidence';
+    badge.className = 'badge ' + (passport.confidence || 'none');
+
+    document.getElementById('employer-count').textContent = passport.active_employer_count != null ? passport.active_employer_count : '—';
+    document.getElementById('avg-income').textContent = formatINR(passport.six_month_avg_income);
+
+    var breakdownEl = document.getElementById('breakdown');
+    breakdownEl.innerHTML = '';
+    var weights = passport.weights_used || {};
+    var breakdown = passport.breakdown || {};
+    if (breakdown.regularity) renderGauge(breakdownEl, 'Regularity', breakdown.regularity.score, weights.regularity || 0);
+    if (breakdown.retention) renderGauge(breakdownEl, 'Retention', breakdown.retention.score, weights.retention || 0);
+    if (breakdown.variance) renderGauge(breakdownEl, 'Variance', breakdown.variance.score, weights.variance || 0);
+
+    show('result');
+  }
+
+  function renderEmpty(workerId) {
+    document.getElementById('empty-title').textContent = 'No verified income history yet';
+    document.getElementById('empty-text').textContent =
+      'Worker "' + workerId + '" doesn\'t have any confirmed transactions yet. Once payments are received and confirmed, their Credit Passport will appear here.';
+    show('empty');
+  }
+
+  function renderError(message) {
+    document.getElementById('error-text').textContent = message;
+    show('error');
+  }
+
+  function init() {
+    var params = new URLSearchParams(window.location.search);
+    var workerId = params.get('worker_id');
+
+    if (!workerId) {
+      renderError('No worker_id provided. Load this page as passport.html?worker_id=<id>.');
+      return;
+    }
+
+    show('loading');
+
+    fetch('/passport/' + encodeURIComponent(workerId))
+      .then(function (res) {
+        return res.json().then(function (body) {
+          return { status: res.status, body: body };
+        });
+      })
+      .then(function (result) {
+        if (result.body && result.body.status === 'insufficient_data') {
+          renderEmpty(workerId);
+          return;
+        }
+        if (result.status !== 200) {
+          renderError('Server responded with an unexpected status (' + result.status + ').');
+          return;
+        }
+        renderResult(result.body);
+      })
+      .catch(function (err) {
+        renderError('Could not reach the server: ' + err.message);
+      });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
