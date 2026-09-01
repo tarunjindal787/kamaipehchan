@@ -142,8 +142,38 @@ async function run() {
 
   console.log('  ✓ sanitizeNote strips control characters and enforces max length directly');
 
+  // --- Scenario 4: request timeout wiring -------------------------------
+  // A hung call must not block forever. Rather than waiting out the real
+  // 120s timeout, confirm (a) fetch is called with an abortable signal,
+  // and (b) an AbortError from fetch (what a real timeout produces) is
+  // reported as a timeout, not a generic failure.
+  process.env.LLM_API_KEY = 'sk-ant-fake-test-key-do-not-use';
+
+  let capturedSignal = null;
+  global.fetch = async (_url, opts) => {
+    capturedSignal = opts.signal;
+    const err = new Error('The operation was aborted');
+    err.name = 'AbortError';
+    throw err;
+  };
+
+  const timeoutResult = await classifyWithLLM({
+    rail_id: 'va_test_timeout',
+    amount: 777,
+    note: 'unclear',
+    credited_at: '2026-01-04T00:00:00Z',
+  });
+
+  assert.ok(capturedSignal instanceof AbortSignal, 'fetch must be called with an AbortSignal');
+  assert.strictEqual(timeoutResult.label, CLASSIFIER_LABELS.NEEDS_REVIEW);
+  assert.strictEqual(timeoutResult.path, 'llm_assisted');
+  assert.strictEqual(timeoutResult.parse_error, true);
+  assert.ok(/timed out/i.test(timeoutResult.reason), 'timeout must be reported distinctly from a generic failure');
+
+  console.log('  ✓ LLM fetch call is abortable and a timeout is reported distinctly from a generic failure');
+
   delete process.env.LLM_API_KEY;
-  console.log('✅ Unit test passed: LLM classifier fallback, parse-error, and prompt-injection defense verified.');
+  console.log('✅ Unit test passed: LLM classifier fallback, parse-error, prompt-injection defense, and timeout wiring verified.');
 }
 
 run().catch((err) => {

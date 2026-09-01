@@ -19,8 +19,14 @@ const { redactPassport } = require('./privacy/redactPassport');
 const { handleConfirmationReply } = require('./worker/confirmationHandler');
 const { handleRegister, handleGetWorker } = require('./worker/registration');
 const { handleAddEmployer, handleGetEmployerRails } = require('./worker/employerLinking');
+const { createRateLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
+
+// Deployed behind Railway's reverse proxy - without this, req.ip resolves
+// to the proxy's address, collapsing every real client into one rate-limit
+// bucket instead of limiting per actual caller.
+app.set('trust proxy', 1);
 
 // Security: basic headers & payload size limit
 app.use((_req, res, next) => {
@@ -29,6 +35,11 @@ app.use((_req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   next();
 });
+
+// Basic abuse protection - fixed-window, in-memory, per-IP. Applied before
+// body parsing so an abusive caller is rejected without the cost of
+// parsing/verifying their payload.
+app.use(createRateLimiter());
 
 // Capture raw body buffer for cryptographically accurate HMAC-SHA256 verification
 app.use(

@@ -135,7 +135,7 @@ cp .env.example .env
 npm install
 ```
 
-### 3. Run Test Suite (13 Unit Test Suites)
+### 3. Run Test Suite (15 Unit Test Suites)
 ```bash
 npm test
 ```

@@ -37,6 +37,12 @@ const MAX_NOTE_LENGTH = 200;
 const NOTE_DELIMITER_START = '<<<PAYMENT_NOTE_START>>>';
 const NOTE_DELIMITER_END = '<<<PAYMENT_NOTE_END>>>';
 
+// Real Gemini calls have been observed taking 50-100s (Day 6 benchmark:
+// avg 33.6s, with slower individual calls seen in the live deployed
+// webhook test) - 120s gives real calls comfortable room while still
+// guaranteeing a hung request can't block a webhook handler forever.
+const LLM_TIMEOUT_MS = 120_000;
+
 function sanitizeNote(note) {
   const asString = typeof note === 'string' ? note : '';
   // eslint-disable-next-line no-control-regex
@@ -64,6 +70,9 @@ async function classifyWithLLM(transaction) {
   const prompt = buildPrompt(transaction);
   const startedAt = Date.now();
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
+
   let response;
   try {
     response = await fetch(`${GEMINI_API_URL}?key=${encodeURIComponent(config.llm.apiKey)}`, {
@@ -71,6 +80,7 @@ async function classifyWithLLM(transaction) {
       headers: {
         'content-type': 'application/json',
       },
+      signal: controller.signal,
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
@@ -94,14 +104,19 @@ async function classifyWithLLM(transaction) {
       }),
     });
   } catch (err) {
+    const timedOut = err.name === 'AbortError';
     return {
       label: CLASSIFIER_LABELS.NEEDS_REVIEW,
       confidence: 0,
       path: 'llm_assisted',
       latency_ms: Date.now() - startedAt,
       parse_error: true,
-      reason: `LLM request failed: ${err.message}`,
+      reason: timedOut
+        ? `LLM request timed out after ${LLM_TIMEOUT_MS}ms`
+        : `LLM request failed: ${err.message}`,
     };
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   const latency_ms = Date.now() - startedAt;
