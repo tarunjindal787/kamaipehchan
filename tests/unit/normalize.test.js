@@ -2,6 +2,7 @@ const assert = require('assert');
 const { normalizeTransaction } = require('../../src/webhooks/normalize');
 const realCapturedEvent = require('../benchmark_payloads/real_test_mode/sample_credit_event.json');
 const referenceIdTestEvent = require('../benchmark_payloads/real_test_mode/payment_link_reference_id_test.json');
+const paymentLinkPaidRealEvent = require('../benchmark_payloads/real_test_mode/payment_link_paid_real_event.json');
 
 console.log('Running unit test: tests/unit/normalize.test.js');
 
@@ -105,7 +106,40 @@ console.log(
     '(fallback logic only - reference_id itself is confirmed absent in practice)'
 );
 
+// Real payment_link.paid webhook (tests/benchmark_payloads/real_test_mode/
+// payment_link_paid_real_event.json, captured live 2026-08-31 for
+// pay_TWHdBlsg5L3TGm / RAIL_worker_973712b5_EMP_ZEPTOTESTDEPLOY) - the
+// event this composite fallback was originally built for actually DOES
+// carry reference_id, just on payload.payment_link.entity, a sibling of
+// payload.payment.entity that normalizeTransaction never read. Confirms
+// rail_id now resolves directly from that field for payment_link.paid,
+// not the notes-based composite (which would produce a different string:
+// "worker_973712b5_ZEPTOTESTDEPLOY", not "RAIL_worker_973712b5_EMP_ZEPTOTESTDEPLOY").
+assert.strictEqual(
+  paymentLinkPaidRealEvent.payload.payment_link.entity.reference_id,
+  'RAIL_worker_973712b5_EMP_ZEPTOTESTDEPLOY',
+  'sanity check: the fixture actually carries the real confirmed reference_id'
+);
+const paymentLinkPaidResult = normalizeTransaction(paymentLinkPaidRealEvent);
+assert.strictEqual(
+  paymentLinkPaidResult.rail_id,
+  'RAIL_worker_973712b5_EMP_ZEPTOTESTDEPLOY',
+  'rail_id must come directly from payload.payment_link.entity.reference_id, not the notes-based composite fallback'
+);
+assert.notStrictEqual(
+  paymentLinkPaidResult.rail_id,
+  'worker_973712b5_ZEPTOTESTDEPLOY',
+  'must not silently fall back to the composite format when the real reference_id is present'
+);
+assert.strictEqual(paymentLinkPaidResult.worker_id, 'worker_973712b5');
+assert.strictEqual(paymentLinkPaidResult.amount, 100);
+console.log(
+  '  ✓ real payment_link.paid webhook (2026-08-31): rail_id resolves directly from ' +
+    'payload.payment_link.entity.reference_id, not the notes-based composite fallback'
+);
+
 console.log(
   '✅ Unit test passed: normalizeTransaction covers virtual_account, real payment.captured ' +
-    '(including the real reference_id-investigation payload), and the notes-based fallback.'
+    '(including the real reference_id-investigation payload), the real payment_link.paid ' +
+    'direct reference_id read, and the notes-based fallback.'
 );

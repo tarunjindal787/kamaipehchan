@@ -28,12 +28,23 @@ function normalizeTransaction(rawWebhookPayload) {
     rawWebhookPayload?.payload ||
     {};
 
+  // Confirmed live (Day 6): payment_link.paid carries the real reference_id,
+  // but only on payload.payment_link.entity - a sibling of payload.payment.entity,
+  // never something `entity` above resolves to. Check it first for this event
+  // type specifically. payment.captured (confirmed absent) and everything else
+  // still falls through to the notes-based composite below.
+  const paymentLinkReferenceId =
+    rawWebhookPayload?.event === 'payment_link.paid'
+      ? rawWebhookPayload?.payload?.payment_link?.entity?.reference_id
+      : null;
+
   return {
     // Confirmed live (Day 6): a real payment.captured event carries neither
     // virtual_account_id nor reference_id - notes.worker_id + notes.employer_ref
     // are what's actually load-bearing, since we control those ourselves at
     // Payment Link creation regardless of which event type fires.
     rail_id:
+      paymentLinkReferenceId ??
       entity.virtual_account_id ??
       entity.reference_id ??
       (entity.notes?.worker_id && entity.notes?.employer_ref

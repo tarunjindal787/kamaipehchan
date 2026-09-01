@@ -191,6 +191,56 @@
     margin-top: 22px;
   }
 
+  /* ---------- Lender view ---------- */
+  .view-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    color: #3730a3;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+  }
+
+  .rating-line { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+
+  .rail-list { margin-top: 10px; }
+  .rail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .rail-row:first-child { border-top: none; }
+  .rail-name { font-weight: 600; }
+  .rail-detail { color: var(--ink-soft); font-size: 12.5px; }
+
+  .privacy-block {
+    margin-top: 24px;
+    background: var(--good-bg);
+    border: 1px solid #bfe6cf;
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .privacy-block-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 700; color: var(--good);
+    margin: 0 0 10px;
+  }
+  .privacy-list { margin: 0; padding-left: 0; list-style: none; }
+  .privacy-list li {
+    font-size: 13px; color: #1e5b3a;
+    padding: 4px 0 4px 22px;
+    position: relative;
+  }
+  .privacy-list li::before {
+    content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700;
+  }
+
   [hidden] { display: none !important; }
 
   @media (max-width: 480px) {
@@ -206,6 +256,8 @@
     <div class="brand-mark">KP</div>
     <div class="brand-text">KamaiPehchan<span>Verifiable Income &amp; Credit Passport</span></div>
   </div>
+
+  <div id="view-banner" class="view-banner" hidden></div>
 
   <div class="card">
     <div id="loading">
@@ -237,7 +289,7 @@
           </div>
         </div>
         <div class="score-meta">
-          <p class="score-title">Income Stability Index (0&ndash;100)</p>
+          <p class="score-title" id="score-title">Income Stability Index (0&ndash;100)</p>
           <span class="badge" id="confidence-badge"></span>
           <div class="stat-grid">
             <div class="stat">
@@ -246,7 +298,7 @@
             </div>
             <div class="stat">
               <div class="stat-value" id="avg-income">-</div>
-              <div class="stat-label">6-month avg. income</div>
+              <div class="stat-label" id="avg-income-label">6-month avg. income</div>
             </div>
           </div>
         </div>
@@ -257,7 +309,12 @@
       <p class="section-title">Score Breakdown</p>
       <div id="breakdown"></div>
 
-      <p class="footer-note">Generated on-demand from confirmed, worker-verified transactions only.</p>
+      <div id="privacy-block" class="privacy-block" hidden>
+        <p class="privacy-block-title">🔒 Privacy &amp; Data Minimization</p>
+        <ul class="privacy-list" id="privacy-list"></ul>
+      </div>
+
+      <p class="footer-note" id="footer-note">Generated on-demand from confirmed, worker-verified transactions only.</p>
     </div>
 
     <div id="error" hidden>
@@ -280,8 +337,18 @@
 
   function formatINR(paise) {
     if (typeof paise !== 'number') return '—';
-    var rupees = Math.round(paise / 100);
+    return formatINRRupees(Math.round(paise / 100));
+  }
+
+  function formatINRRupees(rupees) {
+    if (typeof rupees !== 'number') return '—';
     return '₹' + rupees.toLocaleString('en-IN');
+  }
+
+  function ratingBadgeClass(rating) {
+    if (rating === 'HIGH' || rating === 'STABLE') return 'high';
+    if (rating === 'MODERATE') return 'medium';
+    return 'low'; // IRREGULAR, VOLATILE
   }
 
   function show(id) {
@@ -290,24 +357,71 @@
     });
   }
 
-  function renderGauge(container, label, score, weight) {
+  function setViewChrome(view) {
+    var banner = document.getElementById('view-banner');
+    var privacyBlock = document.getElementById('privacy-block');
+    if (view === 'lender') {
+      banner.textContent = '🏦 Lender View · Verified Income Summary';
+      banner.hidden = false;
+      privacyBlock.hidden = false;
+    } else {
+      banner.hidden = true;
+      privacyBlock.hidden = true;
+    }
+  }
+
+  function renderGauge(container, label, score, weight, ratingLabel) {
     var row = document.createElement('div');
     row.className = 'gauge-row';
+    var scoreLine = ratingLabel
+      ? '<div class="rating-line"><span class="badge ' + ratingBadgeClass(ratingLabel) + '">' + ratingLabel.toLowerCase() + '</span><span class="gauge-score">' + score + ' / 100</span></div>'
+      : '<div class="gauge-score">' + score + ' / 100</div>';
     row.innerHTML =
       '<div class="gauge-head">' +
         '<span class="gauge-name">' + label + '</span>' +
         '<span class="gauge-weight">' + Math.round(weight * 100) + '% weight</span>' +
       '</div>' +
       '<div class="gauge-track"><div class="gauge-fill" style="width:0%;background:' + scoreColor(score) + '"></div></div>' +
-      '<div class="gauge-score">' + score + ' / 100</div>';
+      scoreLine;
     container.appendChild(row);
     requestAnimationFrame(function () {
       row.querySelector('.gauge-fill').style.width = Math.max(0, Math.min(100, score)) + '%';
     });
   }
 
-  function renderResult(passport) {
-    document.getElementById('worker-id').textContent = passport.worker_id;
+  function renderRailList(container, retentionByRail) {
+    var rails = retentionByRail || {};
+    var names = Object.keys(rails);
+    if (names.length === 0) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'rail-list';
+    names.forEach(function (name) {
+      var rail = rails[name];
+      var row = document.createElement('div');
+      row.className = 'rail-row';
+      row.innerHTML =
+        '<span class="rail-name">' + name + '</span>' +
+        '<span class="rail-detail">' + rail.monthsActive + ' mo active &middot; ' + rail.transactionCount + ' txns</span>';
+      wrap.appendChild(row);
+    });
+    container.appendChild(wrap);
+  }
+
+  function renderPrivacyList(items) {
+    var list = document.getElementById('privacy-list');
+    var labels = {
+      phone: 'Phone number',
+      vpa_address: 'VPA / bank address',
+      bank_account_number: 'Bank account number',
+      raw_transaction_ids: 'Raw transaction IDs',
+    };
+    list.innerHTML = (items || [])
+      .map(function (key) { return '<li>' + (labels[key] || key) + ' &mdash; never collected</li>'; })
+      .join('');
+  }
+
+  function fillCommon(passport) {
     document.getElementById('generated-at').textContent = passport.generated_at
       ? 'Generated ' + new Date(passport.generated_at).toLocaleString()
       : '';
@@ -329,15 +443,56 @@
     badge.className = 'badge ' + (passport.confidence || 'none');
 
     document.getElementById('employer-count').textContent = passport.active_employer_count != null ? passport.active_employer_count : '—';
+
+    document.getElementById('breakdown').innerHTML = '';
+  }
+
+  function renderWorkerResult(passport) {
+    setViewChrome('worker');
+    document.getElementById('worker-id').textContent = passport.worker_id;
+    document.getElementById('score-title').textContent = 'Income Stability Index (0–100)';
+    document.getElementById('avg-income-label').textContent = '6-month avg. income';
+    document.getElementById('footer-note').textContent = 'Generated on-demand from confirmed, worker-verified transactions only.';
+
+    fillCommon(passport);
     document.getElementById('avg-income').textContent = formatINR(passport.six_month_avg_income);
 
     var breakdownEl = document.getElementById('breakdown');
-    breakdownEl.innerHTML = '';
     var weights = passport.weights_used || {};
     var breakdown = passport.breakdown || {};
     if (breakdown.regularity) renderGauge(breakdownEl, 'Regularity', breakdown.regularity.score, weights.regularity || 0);
     if (breakdown.retention) renderGauge(breakdownEl, 'Retention', breakdown.retention.score, weights.retention || 0);
     if (breakdown.variance) renderGauge(breakdownEl, 'Variance', breakdown.variance.score, weights.variance || 0);
+
+    show('result');
+  }
+
+  function renderLenderResult(passport) {
+    setViewChrome('lender');
+    document.getElementById('worker-id').textContent = 'Applicant Reference ID: ' + passport.worker_id;
+    document.getElementById('score-title').textContent = 'Income Stability Index — Underwriting Summary';
+    document.getElementById('avg-income-label').textContent = '6-month avg. income' + (passport.income_band ? ' (' + passport.income_band + ')' : '');
+    document.getElementById('footer-note').textContent = 'This is a privacy-preserving disclosure generated for underwriting purposes. Internal worker identifiers and rail-level detail are anonymized per KamaiPehchan’s Section 8 privacy policy.';
+
+    fillCommon(passport);
+    document.getElementById('avg-income').textContent = formatINRRupees(passport.six_month_avg_income_inr);
+
+    var breakdownEl = document.getElementById('breakdown');
+    var weights = passport.weights_used || {};
+    var breakdown = passport.breakdown || {};
+    if (breakdown.regularity) {
+      renderGauge(breakdownEl, 'Regularity', breakdown.regularity.score, weights.regularity || 0, breakdown.regularity.consistency_rating);
+    }
+    if (breakdown.retention) {
+      renderGauge(breakdownEl, 'Retention', breakdown.retention.score, weights.retention || 0);
+      renderRailList(breakdownEl, breakdown.retention.retentionByRail);
+    }
+    if (breakdown.variance) {
+      renderGauge(breakdownEl, 'Variance', breakdown.variance.score, weights.variance || 0, breakdown.variance.stability_rating);
+    }
+
+    var privacy = passport.privacy || {};
+    renderPrivacyList(privacy.pii_never_collected);
 
     show('result');
   }
@@ -357,15 +512,18 @@
   function init() {
     var params = new URLSearchParams(window.location.search);
     var workerId = params.get('worker_id');
+    var view = params.get('view') === 'lender' ? 'lender' : 'worker';
 
     if (!workerId) {
-      renderError('No worker_id provided. Load this page as passport.html?worker_id=<id>.');
+      renderError('No worker_id provided. Load this page as passport.html?worker_id=<id> (add &view=lender for the lender view).');
       return;
     }
 
     show('loading');
 
-    fetch('/passport/' + encodeURIComponent(workerId))
+    var url = '/passport/' + encodeURIComponent(workerId) + (view === 'lender' ? '?view=lender' : '');
+
+    fetch(url)
       .then(function (res) {
         return res.json().then(function (body) {
           return { status: res.status, body: body };
@@ -380,7 +538,11 @@
           renderError('Server responded with an unexpected status (' + result.status + ').');
           return;
         }
-        renderResult(result.body);
+        if (view === 'lender') {
+          renderLenderResult(result.body);
+        } else {
+          renderWorkerResult(result.body);
+        }
       })
       .catch(function (err) {
         renderError('Could not reach the server: ' + err.message);

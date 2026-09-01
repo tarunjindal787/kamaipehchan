@@ -1,0 +1,103 @@
+{
+  "account_id": "acc_TSXZQSDMlvaAIL",
+  "contains": ["payment_link", "order", "payment"],
+  "created_at": 1788158466,
+  "entity": "event",
+  "event": "payment_link.paid",
+  "payload": {
+    "order": {
+      "entity": {
+        "amount": 100,
+        "amount_due": 0,
+        "amount_paid": 100,
+        "attempts": 1,
+        "checkout": null,
+        "created_at": 1788158521,
+        "currency": "INR",
+        "description": null,
+        "entity": "order",
+        "id": "order_TWHWlMyscVumTP",
+        "notes": {
+          "employer_ref": "ZEPTOTESTDEPLOY",
+          "worker_id": "worker_973712b5"
+        },
+        "offer_id": null,
+        "receipt": "RAIL_worker_973712b5_EMP_ZEPTOTESTDEPLOY",
+        "status": "paid"
+      }
+    },
+    "payment": {
+      "entity": {
+        "acquirer_data": { "transaction_id": null },
+        "amount": 100,
+        "amount_refunded": 0,
+        "amount_transferred": 0,
+        "bank": null,
+        "base_amount": 100,
+        "id": "pay_TWHdBlsg5L3TGm",
+        "captured": true,
+        "card": null,
+        "international": false,
+        "card_id": null,
+        "invoice_id": null,
+        "contact": "+917877722918",
+        "method": "wallet",
+        "created_at": 1788158887,
+        "currency": "INR",
+        "notes": {
+          "employer_ref": "ZEPTOTESTDEPLOY",
+          "worker_id": "worker_973712b5"
+        },
+        "description": "#TWHVmhW1nUFyqM",
+        "email": "jindaltarun186@gmail.com",
+        "entity": "payment",
+        "error_code": null,
+        "order_id": "order_TWHWlMyscVumTP",
+        "error_description": null,
+        "error_reason": null,
+        "error_source": null,
+        "error_step": null,
+        "fee": 3,
+        "fee_bearer": "platform",
+        "refund_status": null,
+        "status": "captured",
+        "tax": 0,
+        "vpa": null,
+        "wallet": "mobikwik"
+      }
+    },
+    "payment_link": {
+      "entity": {
+        "accept_partial": false,
+        "allow_full_payment": false,
+        "amount": 100,
+        "amount_paid": 100,
+        "cancelled_at": 0,
+        "created_at": 1788158466,
+        "currency": "INR",
+        "customer": {},
+        "description": "ZeptoTestDeploy - Tarun Jindal Test Worker",
+        "expire_by": 0,
+        "expired_at": 0,
+        "first_min_partial_amount": 0,
+        "id": "plink_TWHVmhW1nUFyqM",
+        "notes": {
+          "employer_ref": "ZEPTOTESTDEPLOY",
+          "worker_id": "worker_973712b5"
+        },
+        "notify": { "email": false, "sms": false, "whatsapp": false },
+        "order_id": "order_TWHWlMyscVumTP",
+        "payment_plan": false,
+        "reference_id": "RAIL_worker_973712b5_EMP_ZEPTOTESTDEPLOY",
+        "reminder_enable": false,
+        "reminders": { "status": "failed" },
+        "short_url": "https://rzp.io/rzp/QW39fVR",
+        "status": "paid",
+        "updated_at": 1788158917,
+        "upi_link": false,
+        "user_id": "",
+        "whatsapp_link": false
+      }
+    }
+  }
+}
