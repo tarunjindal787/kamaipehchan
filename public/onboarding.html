@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KamaiPehchan - Worker Onboarding</title>
+  <style>
+    /* Styling inspired by passport.html for a unified design language */
+    :root {
+      --bg-color: #f7f9fc;
+      --card-bg: #ffffff;
+      --text-main: #1a202c;
+      --text-muted: #718096;
+      --border-color: #e2e8f0;
+      --primary: #3182ce;
+      --primary-hover: #2b6cb0;
+      --success: #38a169;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      margin: 0; padding: 20px;
+      background: var(--bg-color); color: var(--text-main);
+      font-family: var(--font-family);
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 600px; margin: 0 auto;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+    input[type="text"], input[type="tel"] {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px; font-size: 16px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    input[type="text"]:focus, input[type="tel"]:focus {
+      border-color: var(--primary);
+    }
+    button {
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 6px;
+      padding: 12px 16px; font-size: 16px; font-weight: 600;
+      cursor: pointer; width: 100%;
+      transition: background 0.2s;
+    }
+    button:hover { background: var(--primary-hover); }
+    button:disabled { background: var(--text-muted); cursor: not-allowed; }
+    
+    .rail-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px; margin-top: 12px;
+      background: #fdfdfd;
+    }
+    .rail-card h4 { margin: 0 0 8px 0; color: var(--primary); }
+    .rail-id { font-family: monospace; font-size: 13px; color: var(--text-muted); word-break: break-all; }
+    .status-badge {
+      display: inline-block; padding: 4px 8px;
+      background: #e6fffa; color: var(--success);
+      font-size: 12px; font-weight: bold; border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    #alert-box {
+      padding: 12px; border-radius: 6px; margin-bottom: 24px;
+      display: none; font-size: 14px;
+    }
+    .alert-error { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+    .alert-success { background: #f0fff4; color: #2f855a; border: 1px solid #9ae6b4; }
+
+    /* Hidden state */
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="alert-box"></div>
+
+  <!-- Step 1: Worker Registration -->
+  <div class="card" id="section-register">
+    <h2>Worker Registration</h2>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+      Register your identity to start building your verifiable Credit Passport.
+    </p>
+    <form id="form-register">
+      <div class="form-group">
+        <label for="reg-name">Full Name</label>
+        <input type="text" id="reg-name" placeholder="e.g. Ravi Kumar" required>
+      </div>
+      <div class="form-group">
+        <label for="reg-phone">Phone Number</label>
+        <input type="tel" id="reg-phone" placeholder="+919876543210" required>
+      </div>
+      <div class="form-group">
+        <label for="reg-vpa">Primary UPI VPA (Optional)</label>
+        <input type="text" id="reg-vpa" placeholder="ravi@okhdfcbank">
+      </div>
+      <button type="submit" id="btn-register">Register Identity</button>
+    </form>
+  </div>
+
+  <!-- Step 2: Employer Rail Linking (Hidden until registered) -->
+  <div class="card hidden" id="section-employer">
+    <h2>Add Employer</h2>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+      Generate a verified payment link for your employer. Payments sent to this link automatically build your ISI score.
+    </p>
+    <div style="background: #ebf8ff; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;">
+      <strong>Your Worker ID:</strong> <span id="display-worker-id" style="font-family: monospace;"></span>
+    </div>
+
+    <form id="form-employer">
+      <div class="form-group">
+        <label for="emp-name">Employer / Aggregator Name</label>
+        <input type="text" id="emp-name" placeholder="e.g. Zepto, Swiggy, local shop" required>
+      </div>
+      <button type="submit" id="btn-employer">Generate Payment Link</button>
+    </form>
+
+    <h3 style="margin-top: 32px; margin-bottom: 16px;">Your Payment Rails</h3>
+    <div id="rails-list">
+      <p style="color: var(--text-muted); font-size: 14px;">No rails generated yet.</p>
+    </div>
+    
+    <div style="margin-top: 32px;">
+      <a href="#" id="view-passport-link" style="color: var(--primary); font-weight: 600; text-decoration: none;">&rarr; View My Credit Passport</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentWorkerId = null;
+
+  function showAlert(msg, type = 'success') {
+    const box = document.getElementById('alert-box');
+    box.textContent = msg;
+    box.className = 'alert-' + type;
+    box.style.display = 'block';
+    setTimeout(() => { box.style.display = 'none'; }, 5000);
+  }
+
+  // Handle Registration
+  document.getElementById('form-register').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-register');
+    btn.disabled = true;
+    btn.textContent = 'Registering...';
+
+    const payload = {
+      name: document.getElementById('reg-name').value,
+      phone: document.getElementById('reg-phone').value,
+      vpas: []
+    };
+    const vpa = document.getElementById('reg-vpa').value;
+    if (vpa) payload.vpas.push(vpa);
+
+    try {
+      const res = await fetch('/worker/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
+      
+      currentWorkerId = data.worker_id;
+      showAlert('Registration successful! Worker ID generated.');
+      
+      // Transition UI
+      document.getElementById('section-register').classList.add('hidden');
+      document.getElementById('section-employer').classList.remove('hidden');
+      document.getElementById('display-worker-id').textContent = currentWorkerId;
+      document.getElementById('view-passport-link').href = '/passport.html?worker_id=' + encodeURIComponent(currentWorkerId);
+      
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Register Identity';
+    }
+  });
+
+  // Handle Adding Employer
+  document.getElementById('form-employer').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentWorkerId) return;
+
+    const btn = document.getElementById('btn-employer');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    const payload = {
+      employer_name: document.getElementById('emp-name').value
+    };
+
+    try {
+      const res = await fetch('/worker/' + encodeURIComponent(currentWorkerId) + '/employer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Failed to generate rail');
+      
+      showAlert('Payment rail created successfully!');
+      document.getElementById('emp-name').value = '';
+      
+      // Add to list
+      const list = document.getElementById('rails-list');
+      if (list.querySelector('p')) list.innerHTML = ''; // clear empty message
+      
+      const card = document.createElement('div');
+      card.className = 'rail-card';
+      card.innerHTML = `
+        <h4>${data.employer_name}</h4>
+        <div class="rail-id">ID: ${data.reference_id}</div>
+        <div class="rail-id" style="margin-top:4px;">Link: ${data.payment_link_url || 'Mock Mode (Not Configured)'}</div>
+        <div class="status-badge">Active</div>
+      `;
+      list.prepend(card);
+      
+    } catch (err) {
+      showAlert(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Generate Payment Link';
+    }
+  });
+</script>
+
+</body>
+</html>
