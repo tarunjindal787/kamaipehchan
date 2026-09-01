@@ -1,6 +1,10 @@
 /**
  * Verification Script: Smart Collect Virtual Account Rail Attribution
- * 
+ *
+ * Targets Razorpay Smart Collect virtual accounts. Day 1 confirmed these are
+ * unavailable on Individual Razorpay accounts (MCC restriction) - kept as a
+ * record of that investigation, not part of the working pipeline.
+ *
  * Demonstrates:
  * 1. Same Worker (`worker_1001`) assigned two distinct Virtual Accounts:
  *    - `va_worker1001_employerA` for Employer A (Zepto Delivery)

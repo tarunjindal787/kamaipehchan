@@ -1,3 +1,7 @@
+// Targets Razorpay Smart Collect virtual accounts. Day 1 confirmed these are
+// unavailable on Individual Razorpay accounts (MCC restriction) - kept as a
+// record of that investigation, not part of the working pipeline.
+
 const Razorpay = require('razorpay');
 require('dotenv').config();
 
