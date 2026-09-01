@@ -121,7 +121,7 @@ Assembles the Income Stability Index (ISI) and Credit Passport for a worker on-d
   "privacy": {
     "redacted": true,
     "view_mode": "lender_underwriting",
-    "pii_stripped": ["phone", "vpa_address", "bank_account_number", "raw_transaction_ids"]
+    "pii_never_collected": ["phone", "vpa_address", "bank_account_number", "raw_transaction_ids"]
   },
   "generated_at": "2026-08-27T01:00:00.000Z"
 }
@@ -142,14 +142,14 @@ Assembles the Income Stability Index (ISI) and Credit Passport for a worker on-d
 ## 4. Worker Onboarding & Identity
 
 ### `POST /worker/register`
-Registers a worker's identity (phone, name, UPI VPAs).
+Registers a worker's identity (phone, name, UPI VPA).
 
 #### Request Body
 ```json
 {
   "phone": "+919876543210",
   "name": "Ravi Kumar",
-  "vpas": ["ravi@okhdfcbank"]
+  "vpa": "ravi@okhdfcbank"
 }
 ```
 
@@ -159,8 +159,7 @@ Registers a worker's identity (phone, name, UPI VPAs).
   "worker_id": "worker_9d4ce850",
   "phone": "+919876543210",
   "name": "Ravi Kumar",
-  "vpas": ["ravi@okhdfcbank"],
-  "registered_at": "2026-08-27T01:00:00.000Z"
+  "vpa": "ravi@okhdfcbank"
 }
 ```
 
