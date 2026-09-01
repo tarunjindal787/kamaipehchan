@@ -158,13 +158,12 @@
     btn.disabled = true;
     btn.textContent = 'Registering...';
 
+    const vpa = document.getElementById('reg-vpa').value.trim();
     const payload = {
       name: document.getElementById('reg-name').value,
       phone: document.getElementById('reg-phone').value,
-      vpas: []
+      vpa: vpa || null
     };
-    const vpa = document.getElementById('reg-vpa').value;
-    if (vpa) payload.vpas.push(vpa);
 
     try {
       const res = await fetch('/worker/register', {
