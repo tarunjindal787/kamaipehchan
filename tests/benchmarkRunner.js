@@ -38,14 +38,39 @@ async function runBenchmark() {
       : gated.label === fixture.label;
 
     const bucket = results[gated.path] || (results[gated.path] = []);
-    bucket.push({ id: fixture.id, correct, latency_ms: latency });
+    // llm_assisted can silently BE the safety-net fallback (quota
+    // exhaustion, network failure, or a malformed response -> held at
+    // needs_review) rather than a genuine model response - confirmed live
+    // (Day 6: a Gemini free-tier quota exhaustion mid-run scored a false
+    // "100% accuracy" this way, since these particular fixtures' ground
+    // truth also happens to be needs_review). raw.parse_error is already
+    // llmClassifier.js's own signal for exactly this - split on it so a
+    // fallback-only run can never again silently masquerade as a clean
+    // accuracy number.
+    bucket.push({ id: fixture.id, correct, latency_ms: latency, fallback: !!raw.parse_error });
   }
 
-  for (const [path, items] of Object.entries(results)) {
+  for (const [pathName, items] of Object.entries(results)) {
     if (items.length === 0) continue;
+
+    if (pathName === 'llm_assisted') {
+      const real = items.filter((i) => !i.fallback);
+      const fallback = items.filter((i) => i.fallback);
+
+      if (real.length > 0) {
+        const accuracy = real.filter((i) => i.correct).length / real.length;
+        const avgLatency = real.reduce((s, i) => s + i.latency_ms, 0) / real.length;
+        console.log(`[llm_assisted (real)] n=${real.length} accuracy=${(accuracy * 100).toFixed(1)}% avg_latency=${avgLatency.toFixed(1)}ms`);
+      }
+      if (fallback.length > 0) {
+        console.log(`[llm_assisted (fallback, excluded from accuracy)] n=${fallback.length} - request failed or was quota-exhausted and silently held at needs_review; not genuine model reasoning`);
+      }
+      continue;
+    }
+
     const accuracy = items.filter((i) => i.correct).length / items.length;
     const avgLatency = items.reduce((s, i) => s + i.latency_ms, 0) / items.length;
-    console.log(`[${path}] n=${items.length} accuracy=${(accuracy * 100).toFixed(1)}% avg_latency=${avgLatency.toFixed(1)}ms`);
+    console.log(`[${pathName}] n=${items.length} accuracy=${(accuracy * 100).toFixed(1)}% avg_latency=${avgLatency.toFixed(1)}ms`);
   }
 }
 
