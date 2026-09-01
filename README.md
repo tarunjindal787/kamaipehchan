@@ -6,16 +6,7 @@ Millions of multi-employer informal workers, gig workers, and daily wage earners
 
 ## Architecture
 
-The system processes incoming financial events through a multi-stage pipeline. High-level view:
-
-```
-+------------------------+      +------------------------+      +------------------------+      +------------------------+
-|    Webhook Handler     | ---> |   Payment Classifier   | ---> |       ISI Engine       | ---> |    Credit Passport     |
-| (Razorpay HMAC Verify) |      | (Deterministic + LLM)  |      | (Income Stability Idx) |      |   (Lender / Worker)    |
-+------------------------+      +------------------------+      +------------------------+      +------------------------+
-```
-
-Full pipeline, matching the real code path (`src/webhooks/razorpayWebhookHandler.js` -> `src/classifier/classifyAndRecord.js`). Blue = deterministic/rule-based, yellow = AI-assisted (only reached when the deterministic classifier can't confidently label a transaction), gray = terminal/output states:
+The system processes incoming financial events through a multi-stage pipeline, matching the real code path (`src/webhooks/razorpayWebhookHandler.js` -> `src/classifier/classifyAndRecord.js`). Blue = deterministic/rule-based, yellow = AI-assisted (only reached when the deterministic classifier can't confidently label a transaction), gray = terminal/output states:
 
 ```mermaid
 flowchart TD
