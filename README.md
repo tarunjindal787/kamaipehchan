@@ -6,7 +6,7 @@ Millions of multi-employer informal workers, gig workers, and daily wage earners
 
 ## Architecture
 
-The system processes incoming financial events through a multi-stage pipeline:
+The system processes incoming financial events through a multi-stage pipeline. High-level view:
 
 ```
 +------------------------+      +------------------------+      +------------------------+      +------------------------+
@@ -14,6 +14,44 @@ The system processes incoming financial events through a multi-stage pipeline:
 | (Razorpay HMAC Verify) |      | (Deterministic + LLM)  |      | (Income Stability Idx) |      |   (Lender / Worker)    |
 +------------------------+      +------------------------+      +------------------------+      +------------------------+
 ```
+
+Full pipeline, matching the real code path (`src/webhooks/razorpayWebhookHandler.js` -> `src/classifier/classifyAndRecord.js`). Blue = deterministic/rule-based, yellow = AI-assisted (only reached when the deterministic classifier can't confidently label a transaction), gray = terminal/output states:
+
+```mermaid
+flowchart TD
+    A["Employer pays Razorpay Payment Link"] --> B["Razorpay webhook received<br/>payment.captured + payment_link.paid"]
+    B --> C{"HMAC-SHA256<br/>signature valid?"}
+    C -- no --> C1["Reject: 400 Invalid signature"]
+    C -- yes --> D{"Event dedup<br/>(event type + payment ID)"}
+    D -- duplicate --> D1["200 duplicate_ignored"]
+    D -- new --> E["Normalize transaction<br/>rail_id, amount, note, credited_at"]
+    E --> F{"Classification dedup<br/>(in-flight promise per payment ID)"}
+    F -- already classified --> F1["Reuse existing result"]
+    F -- first time --> G["Deterministic classifier<br/>rail-history / note matching"]
+    G -- confident match --> I
+    G -- ambiguous --> H["Gemini LLM classifier<br/>gemini-3.6-flash, JSON mode"]
+    H --> I{"Confidence gate<br/>>= 0.70?"}
+    I -- below threshold --> J["needs_review<br/>SMS confirmation via Twilio"]
+    I -- above threshold --> K["Fraud / anomaly checks<br/>round-number, uniform interval, self-payment"]
+    K -- flagged --> J
+    K -- clean --> L[("transactionStore")]
+    J --> L
+    L --> M["ISI Engine<br/>Regularity 40% / Retention 30% / Variance 30%"]
+    M --> N["Credit Passport assembled"]
+    N --> O{"Privacy layer redaction"}
+    O -- "?view=worker" --> P["Worker view<br/>full detail"]
+    O -- "?view=lender" --> Q["Lender view<br/>PII redacted"]
+
+    classDef deterministic fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a;
+    classDef ai fill:#fef08a,stroke:#ca8a04,color:#713f12,stroke-width:2px;
+    classDef terminal fill:#f3f4f6,stroke:#6b7280,color:#374151;
+
+    class B,C,D,E,F,G,I,K,M,N,O deterministic
+    class H ai
+    class A,C1,D1,F1,J,P,Q terminal
+```
+
+Note: the deterministic classifier and the confidence gate run *before* the fraud/anomaly checks in the real code (`classifyAndRecord.js`) - a fraud flag or a suspected self-payment can still force `needs_review` even on a confident, gate-passed classification.
 
 1. **Webhook Ingestion (`src/webhooks/`, `src/integrations/razorpay/`):** Listens for real-time payment and virtual account credit events, verifies cryptographic HMAC SHA-256 signatures, and deduplicates events.
 2. **Payment Classifier (`src/classifier/`, `src/integrations/llm/`):** Categorizes transactions into recurring wages, gig payouts, advances, or transfers using rule-based deterministic filters with LLM-assisted fallback for ambiguous notes.
