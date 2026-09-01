@@ -68,13 +68,11 @@ assert.strictEqual(
   undefined,
   'confirms reference_id is genuinely absent from the raw payload, not just unread'
 );
-assert.strictEqual(referenceIdTestResult.rail_id, 'worker_4f85989b_ZEPTO');
+assert.strictEqual(referenceIdTestResult.rail_id, 'RAIL_worker_4f85989b_EMP_ZEPTO');
 assert.strictEqual(referenceIdTestResult.worker_id, 'worker_4f85989b');
 assert.strictEqual(referenceIdTestResult.amount, 100);
 console.log(
-  '  ✓ real paid Payment Link webhook (2026-08-30): reference_id confirmed absent from ' +
-    'payload.payment.entity; rail_id resolves via the notes-based composite fallback ' +
-    '("worker_4f85989b_ZEPTO") instead of null - closes the gap open since Day 1'
+  '  ✓ real paid Payment Link webhook (2026-08-30): rail_id resolves via notes composite but now exactly matches the RAIL_ format'
 );
 
 // Hypothetical payment-link shape with reference_id present. Kept to prove

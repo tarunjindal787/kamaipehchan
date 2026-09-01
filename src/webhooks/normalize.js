@@ -13,6 +13,8 @@
 // credited_at. Downstream scoring math (src/scoring/) does arithmetic
 // directly on this value, so it must always come out as a number here -
 // this is the only place that conversion needs to happen.
+const { buildReferenceId } = require('../worker/employerLinking');
+
 function toUnixSeconds(value) {
   if (typeof value === 'number') return value;
   if (typeof value === 'string') {
@@ -48,7 +50,7 @@ function normalizeTransaction(rawWebhookPayload) {
       entity.virtual_account_id ??
       entity.reference_id ??
       (entity.notes?.worker_id && entity.notes?.employer_ref
-        ? `${entity.notes.worker_id}_${entity.notes.employer_ref}`
+        ? buildReferenceId(entity.notes.worker_id, entity.notes.employer_ref)
         : null),
     amount: entity.amount ?? null,
     note: entity.notes?.note ?? entity.note ?? entity.description ?? '',

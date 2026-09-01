@@ -49,7 +49,7 @@ function captureLogs(fn) {
 // payment_link.paid - a "salary" note routes both through the deterministic
 // classifier (instant, no real LLM call, no reliance on network/credentials).
 const PAYMENT_ID = 'pay_test_dedup_001';
-const RAIL_ID = 'worker_test_dedup_TESTEMP'; // notes.worker_id + '_' + notes.employer_ref
+const RAIL_ID = 'RAIL_worker_test_dedup_EMP_TESTEMP'; // Unified reference_id format
 
 const paymentCapturedEvent = {
   event: 'payment.captured',
