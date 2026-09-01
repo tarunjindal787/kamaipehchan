@@ -180,7 +180,7 @@ Creates a dedicated employer payment collection rail for the worker, deriving an
 }
 ```
 
-#### Response (`201 Created`)
+#### Response (`201 Created` - Razorpay Configured)
 ```json
 {
   "employer_name": "Zepto",
@@ -189,6 +189,20 @@ Creates a dedicated employer payment collection rail for the worker, deriving an
   "payment_link_url": "https://rzp.io/rzp/...",
   "mock": false,
   "created_at": "2026-08-27T01:00:00.000Z"
+}
+```
+
+#### Response (`201 Created` - Mock Mode)
+Razorpay keys aren't configured (the default for local dev), so no real payment link is created - the rail is still recorded, but `payment_link_url` is `null` and a `note` field flags the response as mock.
+```json
+{
+  "employer_name": "Zepto",
+  "rail_id": "RAIL_worker_9d4ce850_EMP_ZEPTO",
+  "reference_id": "RAIL_worker_9d4ce850_EMP_ZEPTO",
+  "payment_link_url": null,
+  "mock": true,
+  "created_at": "2026-08-27T01:00:00.000Z",
+  "note": "MOCK - Razorpay test keys not configured, no real link created"
 }
 ```
 
@@ -206,12 +220,12 @@ Inbound Twilio webhook (URL-encoded form) handling worker SMS responses for tran
 - `From`: Worker's mobile number (e.g. `+919876543210`)
 - `Body`: Worker reply text (`"1"` for haan/wage confirmation, `"2"` for personal transfer)
 
-#### Response (`200 OK`)
+#### Response (`200 OK` - Empty Body)
+Every handled path - a resolved reply (`"1"` or `"2"`), an unrecognized reply, or no pending confirmation on file for the number - responds `200 OK` with an **empty body**, not JSON. This is Twilio webhook convention: Twilio reads an empty body as "send no reply SMS", and returning JSON here would be meaningless to Twilio (or, if malformed as TwiML, could cause Twilio-side errors). There is no response payload to inspect - the resolution outcome (which label a transaction was confirmed as, or whether it's still pending) is only observable via server logs and the transaction's updated state (`src/db/transactionStore.js`), not via this HTTP response.
+
+#### Response (`400 Bad Request` - Missing `From`)
 ```json
 {
-  "status": "resolved",
-  "worker_id": "worker_9d4ce850",
-  "label": "recurring_wage",
-  "needs_review": false
+  "error": "Missing From"
 }
 ```
