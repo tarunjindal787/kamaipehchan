@@ -12,6 +12,7 @@ const { recordTransaction, getHistory } = require('../db/transactionStore');
 const { sendConfirmationPrompt } = require('../worker/notifier');
 const { detectAnomalies } = require('../fraud/anomalyDetector');
 const { isSelfPayment } = require('../fraud/selfPaymentCheck');
+const { calculateRiskScore } = require('../fraud/riskScore');
 
 async function classifyAndRecord(transaction) {
   const classification = await classifyTransaction(transaction);
@@ -20,8 +21,15 @@ async function classifyAndRecord(transaction) {
   const railHistory = getHistory(transaction.rail_id);
   const anomalies = detectAnomalies(transaction, railHistory);
   const selfPay = isSelfPayment(transaction);
+  // Computed from the same anomalies/selfPay signals checked below, so
+  // a HIGH risk_level can never occur without also tripping the
+  // fraud-flag/self-payment condition already handled there - see
+  // riskScore.js's "no_history_on_rail" comment. Included in the
+  // condition anyway so the override stays correct if the weights
+  // above ever change independently of this file.
+  const risk = calculateRiskScore(transaction, railHistory, anomalies, selfPay);
 
-  if (anomalies.flagged || (selfPay.checked && selfPay.isSelfPayment)) {
+  if (anomalies.flagged || (selfPay.checked && selfPay.isSelfPayment) || risk.risk_level === 'HIGH') {
     gated = {
       ...gated,
       needs_review: true,
@@ -52,6 +60,13 @@ async function classifyAndRecord(transaction) {
     fraud_flags: gated.fraud_flags || [],
     self_payment_suspected: gated.self_payment_suspected || false,
     original_label: gated.original_label || null,
+    // Persisted independently of needs_review/fraud_flags so the
+    // Exception Report (src/reporting/exceptionReport.js) can surface
+    // the score even on transactions the fraud-flag override didn't
+    // otherwise touch.
+    risk_score: risk.risk_score,
+    risk_level: risk.risk_level,
+    contributing_factors: risk.contributing_factors,
   });
 
   if (gated.needs_review) {

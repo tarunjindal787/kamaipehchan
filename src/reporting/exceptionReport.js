@@ -103,6 +103,8 @@ function buildExceptionReport(worker_id) {
       reason_detail,
       action_taken: ACTION_TAKEN,
       classification_path: t.classification_path ?? null,
+      risk_score: typeof t.risk_score === 'number' ? t.risk_score : null,
+      risk_level: t.risk_level ?? null,
     };
   });
 
