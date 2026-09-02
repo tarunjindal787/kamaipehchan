@@ -1,6 +1,6 @@
 # KamaiPehchan — Verifiable Income & Credit Passport
 
-**[Full Project Proposal](docs/PROPOSAL.md)** - problem, architecture, verified findings, honest benchmarks, and judge Q&A.
+📄 **[Read the Full Project Proposal](docs/PROPOSAL.md)** - problem, architecture, verified findings, honest benchmarks, and judge Q&A.
 
 ## Problem
 
@@ -52,6 +52,23 @@ Note: the deterministic classifier and the confidence gate run *before* the frau
 4. **ISI Engine (`src/scoring/`):** Computes the explainable Income Stability Index (ISI) across Regularity (40%), Retention (30%), and Variance (30%).
 5. **Credit Passport & Privacy Layer (`src/passport/`, `src/privacy/`):** Generates privacy-preserving, lender-ready credit passports with selective disclosure (`?view=lender` vs `?view=worker`).
 6. **Worker Onboarding & Rail Linking (`src/worker/`, `src/db/`):** Provides automated worker registration and deterministic employer payment rail creation (`reference_id = RAIL_<workerId>_EMP_<slug>`).
+
+### Real-World Edge Cases Solved
+
+Every row below is a real bug or incident hit during development, not a hypothetical - see [Detailed Findings](#detailed-findings) below and the [Full Project Proposal](docs/PROPOSAL.md) for the complete account of each.
+
+| Challenge / Bug Found | Real-World Trigger | Solution Implemented |
+|---|---|---|
+| Smart Collect MCC Block | Restricted on Individual-MCC Razorpay accounts | Pivoted to Payment Links + deterministic `reference_id` |
+| Webhook ID Collision | `payment.captured` and `payment_link.paid` share the same payment ID | Event dedup keyed by event type + payment ID |
+| Double LLM Cost | Both webhook events triggered concurrent classification calls for one payment | In-flight promise cache, keyed by payment ID |
+| `reference_id` Length Overflow | Composite worker+employer ID exceeded Razorpay's 40-char limit | Truncate the full composite, not just the employer slug |
+| Credential Exposure (4 incidents) | ngrok token in git history, Razorpay key/secret and Gemini key pasted in chat, secrets printed by `railway variables list` | Every incident caught and flagged immediately; all affected credentials rotated same-session, verified via full git-history secret scan |
+| Benchmark Validity Gap | Gemini quota exhaustion silently scored as 100% via safety fallback | Benchmark now reports real vs. fallback-driven results separately |
+
+### Transparency Features
+
+> **The Automated Exception Report** ([`src/reporting/exceptionReport.js`](src/reporting/exceptionReport.js)) is KamaiPehchan's answer to Razorpay's own submission-transparency criteria: "an honest exception list, not just cherry-picked matches." Every transaction the classifier couldn't confidently auto-approve - low confidence, a fraud/risk flag, an unavailable LLM - is listed with its exact reason code, never silently dropped. It's not a log file: it's rendered live on the [lender dashboard](public/dashboard.html) (`/dashboard.html`) next to the Credit Passport, alongside each exception's fraud risk score, so a lender sees *why* a transaction was excluded from the ISI score, not just the final number.
 
 ---
 
