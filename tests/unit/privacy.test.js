@@ -38,6 +38,17 @@ const samplePassport = {
     },
     variance: { score: 89, avgMonthlyIncome: 2400000, monthsObserved: 6, confidence: 'high' },
   },
+  income_shock: {
+    shock_detected: true,
+    severity: 'moderate',
+    latest_month_income: 1200000,
+    three_month_average: 2400000,
+    drop_percentage: 50,
+    risk_factors: [
+      'Latest confirmed month (2026-06) income is 50% below the prior 3-month average.',
+      'Rail RAIL_worker_private_EMP_SWIGGY had confirmed payments through 2026-05 but none in 2026-06.',
+    ],
+  },
   generated_at: new Date().toISOString(),
 };
 
@@ -66,10 +77,24 @@ assert.ok(!maskedRailKeys.includes('RAIL_worker_private_EMP_ZEPTO'));
 assert.ok(maskedRailKeys.some((k) => k.includes('(ZEPTO)')), 'employer name should survive the masking, by design');
 console.log('  ✓ lender view masks internal rail identifiers (employer name intentionally preserved), attaches income band, states pii_never_collected accurately');
 
+// income_shock.risk_factors can name a raw rail_id (src/scoring/incomeShock.js) -
+// the lender view must mask it the same way retentionByRail is masked, not
+// leak it through as plain text.
+assert.strictEqual(lenderView.income_shock.shock_detected, true);
+assert.strictEqual(lenderView.income_shock.severity, 'moderate');
+const maskedRiskFactor = lenderView.income_shock.risk_factors[1];
+assert.ok(!maskedRiskFactor.includes('RAIL_worker_private_EMP_SWIGGY'), 'raw rail_id must not leak into the lender view via risk_factors text');
+assert.ok(maskedRiskFactor.includes('(SWIGGY)'), 'employer name should survive masking, same as retentionByRail');
+console.log('  ✓ lender view masks raw rail_id references embedded in income_shock.risk_factors text');
+
 // 4. Worker full view retains unredacted data
 const workerView = redactPassport(samplePassport, 'worker');
 assert.strictEqual(workerView.view_mode, 'worker_full');
 assert.ok(workerView.breakdown.retention.retentionByRail['RAIL_worker_private_EMP_ZEPTO']);
+assert.ok(
+  workerView.income_shock.risk_factors[1].includes('RAIL_worker_private_EMP_SWIGGY'),
+  'worker view is unredacted, so the raw rail_id should be untouched'
+);
 console.log('  ✓ worker view retains full internal breakdown for worker self-inspection');
 
 // 5. Insufficient data passthrough

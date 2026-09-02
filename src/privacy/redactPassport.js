@@ -37,6 +37,20 @@ function anonymizeRail(railId, index) {
   return `Verified Rail #${index + 1}${employerTag}`;
 }
 
+// income_shock.risk_factors (src/scoring/incomeShock.js) are plain strings
+// that can name a raw rail_id (e.g. "Rail RAIL_worker_123_EMP_ZEPTO had
+// confirmed payments..."). The lender view must never see that raw
+// identifier - anonymizeRail() above is exactly how retentionByRail keys
+// are already masked, so the same railId -> maskedName mapping is reused
+// here rather than re-deriving the mapping differently.
+function maskRailReferences(text, railIdToMasked) {
+  let masked = text;
+  for (const [railId, maskedName] of Object.entries(railIdToMasked)) {
+    if (railId) masked = masked.split(railId).join(maskedName);
+  }
+  return masked;
+}
+
 // Bracket boundaries (₹10k/25k/50k/1L) are a placeholder heuristic, not a
 // validated credit-bureau standard - flag for review during the pilot
 // (Section 10), same caveat as isiEngine.js's weights and regularity.js's
@@ -75,10 +89,12 @@ function redactPassport(passport, view = 'full') {
 
   // Lender-safe privacy-preserving view
   const redactedRetention = { ...passport.breakdown.retention };
+  const railIdToMasked = {};
   if (redactedRetention.retentionByRail) {
     const sanitizedRails = {};
     Object.keys(redactedRetention.retentionByRail).forEach((railId, idx) => {
       const maskedName = anonymizeRail(railId, idx);
+      railIdToMasked[railId] = maskedName;
       sanitizedRails[maskedName] = {
         monthsActive: redactedRetention.retentionByRail[railId].monthsActive,
         transactionCount: redactedRetention.retentionByRail[railId].transactionCount,
@@ -86,6 +102,13 @@ function redactPassport(passport, view = 'full') {
     });
     redactedRetention.retentionByRail = sanitizedRails;
   }
+
+  const incomeShock = passport.income_shock
+    ? {
+        ...passport.income_shock,
+        risk_factors: (passport.income_shock.risk_factors || []).map((f) => maskRailReferences(f, railIdToMasked)),
+      }
+    : passport.income_shock;
 
   return {
     worker_id: passport.worker_id,
@@ -116,6 +139,7 @@ function redactPassport(passport, view = 'full') {
         monthsObserved: passport.breakdown.variance.monthsObserved || 6,
       },
     },
+    income_shock: incomeShock,
     privacy: {
       redacted: true,
       view_mode: 'lender_underwriting',

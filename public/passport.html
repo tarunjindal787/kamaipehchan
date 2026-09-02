@@ -230,6 +230,27 @@
   .rail-name { font-weight: 600; }
   .rail-detail { color: var(--ink-soft); font-size: 12px; }
 
+  /* ---------- Income Shock warning (lender view) ---------- */
+  .income-shock-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 18px;
+  }
+  .income-shock-banner.moderate { background: var(--warn-bg); border-left: 3px solid var(--warn); }
+  .income-shock-banner.severe { background: var(--bad-bg); border-left: 3px solid var(--bad); }
+  .income-shock-banner svg { flex-shrink: 0; margin-top: 1px; }
+  .income-shock-banner.moderate svg { color: var(--warn); }
+  .income-shock-banner.severe svg { color: var(--bad); }
+  .income-shock-title { font-size: 13.5px; font-weight: 700; margin: 0 0 4px; }
+  .income-shock-banner.moderate .income-shock-title { color: var(--warn); }
+  .income-shock-banner.severe .income-shock-title { color: var(--bad); }
+  .income-shock-detail { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+  .income-shock-factors { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: var(--ink-soft); }
+  .income-shock-factors li { margin: 2px 0; }
+
   .privacy-block {
     margin-top: 24px;
     background: var(--bg);
@@ -319,6 +340,19 @@
               <div class="stat-label" id="avg-income-label">6-month avg. income</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div id="income-shock-banner" class="income-shock-banner" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <div>
+          <p class="income-shock-title" id="income-shock-title"></p>
+          <div class="income-shock-detail" id="income-shock-detail"></div>
+          <ul class="income-shock-factors" id="income-shock-factors"></ul>
         </div>
       </div>
 
@@ -442,6 +476,31 @@
     container.appendChild(wrap);
   }
 
+  function renderIncomeShockBanner(incomeShock) {
+    var banner = document.getElementById('income-shock-banner');
+    if (!incomeShock || !incomeShock.shock_detected) {
+      banner.hidden = true;
+      return;
+    }
+    banner.hidden = false;
+    banner.className = 'income-shock-banner ' + (incomeShock.severity === 'severe' ? 'severe' : 'moderate');
+    document.getElementById('income-shock-title').textContent =
+      (incomeShock.severity === 'severe' ? 'Severe' : 'Moderate') + ' income drop detected';
+    document.getElementById('income-shock-detail').textContent =
+      'Latest confirmed month is ' + formatINR(incomeShock.latest_month_income) +
+      ', down ' + incomeShock.drop_percentage + '% from the prior 3-month average of ' +
+      formatINR(incomeShock.three_month_average) + '.';
+    var factorsEl = document.getElementById('income-shock-factors');
+    factorsEl.innerHTML = '';
+    // Index 0 is the generic drop-percentage line, already restated above in
+    // income-shock-detail - only list the more specific factors (if any) here.
+    (incomeShock.risk_factors || []).slice(1).forEach(function (factor) {
+      var li = document.createElement('li');
+      li.textContent = factor;
+      factorsEl.appendChild(li);
+    });
+  }
+
   function renderPrivacyList(items) {
     var list = document.getElementById('privacy-list');
     var labels = {
@@ -526,6 +585,8 @@
     if (breakdown.variance) {
       renderGauge(breakdownEl, 'Variance', breakdown.variance.score, weights.variance || 0, breakdown.variance.stability_rating);
     }
+
+    renderIncomeShockBanner(passport.income_shock);
 
     var privacy = passport.privacy || {};
     renderPrivacyList(privacy.pii_never_collected);

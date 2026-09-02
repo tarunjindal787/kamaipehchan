@@ -3,6 +3,7 @@
 // insufficient_data with isi_score: null, never a guessed score.
 
 const { calculateISI } = require('../scoring/isiEngine');
+const { detectIncomeShock } = require('../scoring/incomeShock');
 const { getConfirmedIncomeTransactionsByWorker } = require('../db/transactionStore');
 
 function sixMonthAverageIncome(confirmedTransactions) {
@@ -43,6 +44,7 @@ function buildPassport(worker_id) {
     six_month_avg_income: sixMonthAverageIncome(confirmed),
     weights_used: isi.weights_used,
     breakdown: isi.breakdown,
+    income_shock: detectIncomeShock(confirmed),
     generated_at: new Date().toISOString(),
   };
 }
