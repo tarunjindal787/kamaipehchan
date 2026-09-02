@@ -161,6 +161,13 @@
       font-size: 12px; color: var(--ink-faint); line-height: 1.6;
       margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);
     }
+    .llm-status-indicator {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface-alt); color: var(--ink-soft);
+      font-size: 12px; padding: 8px 12px; border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .llm-status-indicator svg { flex-shrink: 0; color: var(--ink-faint); }
   </style>
 </head>
 <body>
@@ -204,6 +211,14 @@
     <div class="exception-header">
       <p class="section-title">Exception Report</p>
       <span class="exception-rate-badge" id="exception-rate-badge">—% auto-classified</span>
+    </div>
+    <div class="llm-status-indicator" id="llm-status-indicator" hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <line x1="12" y1="8" x2="12" y2="12.5"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      Classification Mode: Deterministic Engine Active (AI assist unavailable for one or more transactions below)
     </div>
     <div class="exception-stats" id="exception-stats"></div>
     <table class="exception-table" id="exception-table">
@@ -264,6 +279,15 @@
 
     document.getElementById('exception-rate-badge').textContent =
       (s.auto_classification_rate != null ? s.auto_classification_rate : 0) + '% auto-classified';
+
+    // Real recorded state, not a live status check: LLM_UNAVAILABLE only
+    // appears on an exception when classifyAndRecord actually fell back
+    // (missing key, quota exhaustion, timeout, or an unparseable response -
+    // see classifyReason in src/reporting/exceptionReport.js). Shown only
+    // when it's genuinely present among this worker's own exceptions, not
+    // as a permanent site-wide banner.
+    const hasLlmUnavailable = (report.exceptions || []).some((e) => e.reason_code === 'LLM_UNAVAILABLE');
+    document.getElementById('llm-status-indicator').hidden = !hasLlmUnavailable;
 
     const statsEl = document.getElementById('exception-stats');
     statsEl.innerHTML = '';
