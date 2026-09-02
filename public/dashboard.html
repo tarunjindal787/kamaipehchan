@@ -146,6 +146,14 @@
     .reason-badge.fraud { background: var(--bad-bg); color: var(--bad); }
     .reason-badge.review { background: var(--warn-bg); color: var(--warn); }
     .reason-badge.pending { background: var(--surface-alt); color: var(--ink-soft); }
+    .risk-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    }
+    .risk-badge.high { background: var(--bad-bg); color: var(--bad); }
+    .risk-badge.medium { background: var(--warn-bg); color: var(--warn); }
+    .risk-badge.low { background: var(--good-bg); color: var(--good); }
+    .exception-risk-score { color: var(--ink-soft); font-size: 12px; margin-top: 4px; }
     .exception-reason-detail { color: var(--ink-soft); font-size: 12px; margin-top: 4px; }
     .exception-action { color: var(--ink-soft); font-size: 12.5px; }
     .exception-empty { color: var(--ink-soft); font-size: 13.5px; padding: 24px 0; text-align: center; }
@@ -200,7 +208,7 @@
     <div class="exception-stats" id="exception-stats"></div>
     <table class="exception-table" id="exception-table">
       <thead>
-        <tr><th>Amount</th><th>Date</th><th>Reason</th><th>Action taken</th></tr>
+        <tr><th>Amount</th><th>Date</th><th>Reason</th><th>Risk</th><th>Action taken</th></tr>
       </thead>
       <tbody id="exception-tbody"></tbody>
     </table>
@@ -233,6 +241,12 @@
     LLM_UNAVAILABLE: 'review',
     AWAITING_WORKER_CONFIRMATION: 'pending',
     UNKNOWN: 'pending',
+  };
+
+  const RISK_BADGE_CLASS = {
+    HIGH: 'high',
+    MEDIUM: 'medium',
+    LOW: 'low',
   };
 
   function loadExceptionReport(workerId) {
@@ -286,12 +300,18 @@
           : '—';
         const badgeClass = REASON_BADGE_CLASS[item.reason_code] || 'pending';
 
+        const riskCell = item.risk_level
+          ? '<span class="risk-badge ' + (RISK_BADGE_CLASS[item.risk_level] || 'low') + '">' + item.risk_level + '</span>' +
+            '<div class="exception-risk-score">' + (typeof item.risk_score === 'number' ? item.risk_score : '—') + ' / 100</div>'
+          : '—';
+
         const tr = document.createElement('tr');
         tr.innerHTML =
           '<td>' + amount + '</td>' +
           '<td>' + date + '</td>' +
           '<td><span class="reason-badge ' + badgeClass + '">' + item.reason_code + '</span>' +
           '<div class="exception-reason-detail">' + (item.reason_detail || '') + '</div></td>' +
+          '<td>' + riskCell + '</td>' +
           '<td class="exception-action">' + (item.action_taken || '') + '</td>';
         tbody.appendChild(tr);
       });
