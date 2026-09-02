@@ -1,5 +1,7 @@
 # KamaiPehchan — Verifiable Income & Credit Passport
 
+**[Full Project Proposal](docs/PROPOSAL.md)** - problem, architecture, verified findings, honest benchmarks, and judge Q&A.
+
 ## Problem
 
 Millions of multi-employer informal workers, gig workers, and daily wage earners receive fragmented payments across digital channels without formal pay slips. Traditional credit scoring models classify these workers as New-To-Credit (NTC) or high-risk due to the lack of structured income verification. KamaiPehchan bridges this gap by aggregating, validating, and structuring multi-source payment streams into an immutable, verifiable income and credit passport.
