@@ -7,11 +7,9 @@
 
 ## Executive Summary
 
-KamaiPehchan turns fragmented, multi-employer UPI income into a single, explainable, lender-ready credit signal.
+KamaiPehchan is a financial identity engine for multi-employer informal workers, not an AI product: deterministic financial rules are the source of truth for every credit decision, and AI only resolves the ambiguous minority of transactions it cannot classify with certainty. The hard problem isn't scoring — it's **cross-employer identity resolution**. We solve it at the payment-rail layer using dedicated Razorpay Payment Links per worker–employer relationship, not by inferring identity with AI, turning fragmented multi-employer UPI income into a single, explainable, lender-ready credit signal. Everything touching a lending decision — the Income Stability Index itself — is deterministic time-series math, fully auditable, with zero model inference.
 
-The hard problem isn't scoring — it's **cross-employer identity resolution**. We solve it at the payment-rail layer using dedicated Razorpay Payment Links per worker–employer relationship, not by inferring identity with AI. That leaves AI to do only what it's genuinely suited for: classifying the ambiguous minority of transactions. Everything touching a lending decision — the Income Stability Index itself — is deterministic time-series math, fully auditable, with zero model inference.
-
-**What separates this submission: every architectural claim below was tested against live Razorpay APIs during the build, and the ones that failed are documented as failures rather than quietly removed.** Smart Collect turned out to be unavailable on our account tier. Our LLM classification path benchmarked at 40% accuracy, not the 90% we targeted. Both are reported here as findings, because a fintech system that hides its failure modes is more dangerous than one that names them.
+**What separates this submission: every architectural claim below was tested against live Razorpay APIs during the build, and the ones that failed are documented as failures rather than quietly removed.** Smart Collect turned out to be unavailable on our account tier — documented, not quietly removed. The AI fallback exists only to handle the harder residual transactions the deterministic layer can't confidently resolve; its measured accuracy there is 40%, not the 90% we targeted (Section 8) - exactly why the architecture treats it as the weakest link by design and never lets it reach a lending decision unsupervised. We report both findings in full, because a fintech system that hides its failure modes is more dangerous than one that names them.
 
 ---
 
