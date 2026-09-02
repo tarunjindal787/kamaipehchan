@@ -20,6 +20,7 @@ const { handleConfirmationReply } = require('./worker/confirmationHandler');
 const { handleRegister, handleGetWorker } = require('./worker/registration');
 const { handleAddEmployer, handleGetEmployerRails } = require('./worker/employerLinking');
 const { createRateLimiter } = require('./middleware/rateLimiter');
+const { buildExceptionReport } = require('./reporting/exceptionReport');
 
 const app = express();
 
@@ -90,6 +91,11 @@ app.post('/worker/register', handleRegister);
 app.get('/worker/:workerId', handleGetWorker);
 app.post('/worker/:workerId/employer', express.json(), handleAddEmployer);
 app.get('/worker/:workerId/employers', handleGetEmployerRails);
+
+// ── Section 9: Automated Exception Report (underwriting transparency) ───────
+app.get('/worker/:workerId/exceptions', (req, res) => {
+  res.json(buildExceptionReport(req.params.workerId));
+});
 
 // ── Centralized 404 Handler ──────────────────────────────────────────────────
 app.use((req, res) => {

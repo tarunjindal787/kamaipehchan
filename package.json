@@ -7,7 +7,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "tunnel": "node scripts/tunnel.js",
-    "test": "node tests/unit/attribution.test.js && node tests/unit/classifier.test.js && node tests/unit/llmClassifier.test.js && node tests/unit/normalize.test.js && node tests/unit/scoring.test.js && node tests/unit/isiEngine.test.js && node tests/unit/passport.test.js && node tests/unit/workerRegistry.test.js && node tests/unit/fraud.test.js && node tests/unit/confirmationFlow.test.js && node tests/unit/registration.test.js && node tests/unit/employerLinking.test.js && node tests/unit/privacy.test.js && node tests/unit/webhookHandler.test.js && node tests/unit/rateLimiter.test.js"
+    "test": "node tests/unit/attribution.test.js && node tests/unit/classifier.test.js && node tests/unit/llmClassifier.test.js && node tests/unit/normalize.test.js && node tests/unit/scoring.test.js && node tests/unit/isiEngine.test.js && node tests/unit/passport.test.js && node tests/unit/workerRegistry.test.js && node tests/unit/fraud.test.js && node tests/unit/confirmationFlow.test.js && node tests/unit/registration.test.js && node tests/unit/employerLinking.test.js && node tests/unit/privacy.test.js && node tests/unit/webhookHandler.test.js && node tests/unit/rateLimiter.test.js && node tests/unit/exceptionReport.test.js"
   },
   "repository": {
     "type": "git",

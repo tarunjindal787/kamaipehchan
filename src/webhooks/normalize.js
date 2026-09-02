@@ -52,6 +52,12 @@ function normalizeTransaction(rawWebhookPayload) {
       (entity.notes?.worker_id && entity.notes?.employer_ref
         ? buildReferenceId(entity.notes.worker_id, entity.notes.employer_ref)
         : null),
+    // The same underlying payment ID across every event type Razorpay fires
+    // for it (confirmed live: payment.captured and payment_link.paid both
+    // carry it on payload.payment.entity.id) - this is what the exception
+    // report keys transactions by, since nothing else in this shape
+    // uniquely identifies one payment.
+    transaction_id: entity.id ?? null,
     amount: entity.amount ?? null,
     note: entity.notes?.note ?? entity.note ?? entity.description ?? '',
     credited_at: toUnixSeconds(entity.created_at ?? entity.credited_at ?? null),

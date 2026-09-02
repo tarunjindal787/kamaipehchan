@@ -42,6 +42,16 @@ async function classifyAndRecord(transaction) {
     ...transaction,
     needs_review: gated.needs_review,
     label: gated.needs_review ? null : gated.label,
+    // Persisted so downstream reporting (src/reporting/exceptionReport.js)
+    // can cite the actual recorded reason a transaction wasn't
+    // auto-classified, rather than re-deriving or guessing it after the
+    // fact - none of this was previously written to the stored record.
+    confidence: gated.confidence,
+    classification_path: gated.path,
+    parse_error: gated.parse_error || false,
+    fraud_flags: gated.fraud_flags || [],
+    self_payment_suspected: gated.self_payment_suspected || false,
+    original_label: gated.original_label || null,
   });
 
   if (gated.needs_review) {

@@ -18,6 +18,12 @@
       --accent-soft: #e3efed;
       --navy: #12161c;
       --navy-soft: #1b2129;
+      --good: #3c6e4f;
+      --good-bg: #e7efe9;
+      --warn: #8a5a1f;
+      --warn-bg: #f3ecdf;
+      --bad: #9c3b2e;
+      --bad-bg: #f3e6e3;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
     }
@@ -27,7 +33,7 @@
       background: var(--paper); color: var(--ink);
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
-      display: flex; flex-direction: column; height: 100vh;
+      display: flex; flex-direction: column; min-height: 100vh;
     }
     .header {
       background: var(--navy); color: #f4f2ec;
@@ -78,10 +84,10 @@
     .search-bar button:hover { background: var(--accent-dark); }
 
     .workspace {
-      flex: 1; display: flex; padding: 24px 28px; overflow: hidden;
+      display: flex; padding: 24px 28px;
     }
     .iframe-container {
-      width: 100%; max-width: 640px; height: 100%;
+      width: 100%; max-width: 640px; height: 620px;
       background: var(--surface); border-radius: 8px;
       border: 1px solid var(--border);
       overflow: hidden; display: none;
@@ -99,6 +105,54 @@
       margin: 0 0 8px;
     }
     .empty-state p { font-size: 13.5px; line-height: 1.55; margin: 0; }
+
+    /* ---------- Exception Report ---------- */
+    .exception-section { padding: 0 28px 28px; }
+    .exception-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: clamp(18px, 4vw, 26px);
+    }
+    .exception-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .section-title {
+      font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--ink-soft); margin: 0;
+    }
+    .exception-rate-badge {
+      font-family: var(--font-serif); font-size: 19px; font-weight: 700; color: var(--accent-dark);
+      background: var(--accent-soft); padding: 6px 14px; border-radius: 999px;
+    }
+    .exception-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: var(--border); border: 1px solid var(--border); border-radius: 8px;
+      overflow: hidden; margin-bottom: 20px;
+    }
+    .exception-stat { background: var(--paper); padding: 12px 14px; }
+    .exception-stat-value { font-family: var(--font-serif); font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+    .exception-stat-label { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+    .exception-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .exception-table th {
+      text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--ink-soft); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border);
+    }
+    .exception-table td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .exception-table tr:last-child td { border-bottom: none; }
+    .reason-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    }
+    .reason-badge.fraud { background: var(--bad-bg); color: var(--bad); }
+    .reason-badge.review { background: var(--warn-bg); color: var(--warn); }
+    .reason-badge.pending { background: var(--surface-alt); color: var(--ink-soft); }
+    .exception-reason-detail { color: var(--ink-soft); font-size: 12px; margin-top: 4px; }
+    .exception-action { color: var(--ink-soft); font-size: 12.5px; }
+    .exception-empty { color: var(--ink-soft); font-size: 13.5px; padding: 24px 0; text-align: center; }
+    .exception-note {
+      font-size: 12px; color: var(--ink-faint); line-height: 1.6;
+      margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
@@ -137,6 +191,24 @@
   </div>
 </div>
 
+<div class="exception-section" id="exception-section" hidden>
+  <div class="exception-card">
+    <div class="exception-header">
+      <p class="section-title">Exception Report</p>
+      <span class="exception-rate-badge" id="exception-rate-badge">—% auto-classified</span>
+    </div>
+    <div class="exception-stats" id="exception-stats"></div>
+    <table class="exception-table" id="exception-table">
+      <thead>
+        <tr><th>Amount</th><th>Date</th><th>Reason</th><th>Action taken</th></tr>
+      </thead>
+      <tbody id="exception-tbody"></tbody>
+    </table>
+    <p class="exception-empty" id="exception-empty" hidden>No exceptions — every transaction for this worker was auto-classified.</p>
+    <p class="exception-note">Exceptions are transactions the system declined to auto-classify. They are excluded from the ISI score rather than guessed.</p>
+  </div>
+</div>
+
 <script>
   function performSearch() {
     const val = document.getElementById('search-input').value.trim();
@@ -149,6 +221,83 @@
     // Wire securely to the lender view
     frame.src = '/passport.html?worker_id=' + encodeURIComponent(val) + '&view=lender';
     container.style.display = 'flex';
+
+    loadExceptionReport(val);
+  }
+
+  const REASON_BADGE_CLASS = {
+    SELF_PAYMENT_SUSPECTED: 'fraud',
+    FRAUD_ROUND_NUMBER: 'fraud',
+    FRAUD_UNIFORM_INTERVALS: 'fraud',
+    LOW_CONFIDENCE: 'review',
+    LLM_UNAVAILABLE: 'review',
+    AWAITING_WORKER_CONFIRMATION: 'pending',
+    UNKNOWN: 'pending',
+  };
+
+  function loadExceptionReport(workerId) {
+    fetch('/worker/' + encodeURIComponent(workerId) + '/exceptions')
+      .then((res) => res.json())
+      .then((report) => renderExceptionReport(report))
+      .catch(() => {
+        document.getElementById('exception-section').hidden = true;
+      });
+  }
+
+  function renderExceptionReport(report) {
+    const section = document.getElementById('exception-section');
+    const s = report.summary || {};
+
+    document.getElementById('exception-rate-badge').textContent =
+      (s.auto_classification_rate != null ? s.auto_classification_rate : 0) + '% auto-classified';
+
+    const statsEl = document.getElementById('exception-stats');
+    statsEl.innerHTML = '';
+    [
+      ['Total transactions', s.total_transactions],
+      ['Auto-classified', s.auto_classified],
+      ['Exceptions', s.exceptions],
+      ['Included in ISI', s.included_in_isi],
+    ].forEach(([label, value]) => {
+      const cell = document.createElement('div');
+      cell.className = 'exception-stat';
+      cell.innerHTML =
+        '<div class="exception-stat-value">' + (value != null ? value : '—') + '</div>' +
+        '<div class="exception-stat-label">' + label + '</div>';
+      statsEl.appendChild(cell);
+    });
+
+    const tbody = document.getElementById('exception-tbody');
+    tbody.innerHTML = '';
+    const table = document.getElementById('exception-table');
+    const empty = document.getElementById('exception-empty');
+    const list = report.exceptions || [];
+
+    if (list.length === 0) {
+      table.hidden = true;
+      empty.hidden = false;
+    } else {
+      table.hidden = false;
+      empty.hidden = true;
+      list.forEach((item) => {
+        const amount = typeof item.amount_inr === 'number' ? '₹' + item.amount_inr.toLocaleString('en-IN') : '—';
+        const date = item.credited_at
+          ? new Date(item.credited_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
+          : '—';
+        const badgeClass = REASON_BADGE_CLASS[item.reason_code] || 'pending';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + amount + '</td>' +
+          '<td>' + date + '</td>' +
+          '<td><span class="reason-badge ' + badgeClass + '">' + item.reason_code + '</span>' +
+          '<div class="exception-reason-detail">' + (item.reason_detail || '') + '</div></td>' +
+          '<td class="exception-action">' + (item.action_taken || '') + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    section.hidden = false;
   }
 
   document.getElementById('search-btn').addEventListener('click', performSearch);
