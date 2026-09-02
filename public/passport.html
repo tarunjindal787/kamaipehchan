@@ -558,6 +558,8 @@
     if (breakdown.retention) renderGauge(breakdownEl, 'Retention', breakdown.retention.score, weights.retention || 0);
     if (breakdown.variance) renderGauge(breakdownEl, 'Variance', breakdown.variance.score, weights.variance || 0);
 
+    renderIncomeShockBanner(passport.income_shock);
+
     show('result');
   }
 
