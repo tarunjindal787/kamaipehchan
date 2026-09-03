@@ -161,6 +161,33 @@
       font-size: 12px; color: var(--ink-faint); line-height: 1.6;
       margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);
     }
+    /* ---------- Privacy by Design comparison ---------- */
+    .privacy-comparison-section { padding: 0 28px 24px; }
+    .privacy-comparison-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: clamp(18px, 4vw, 26px);
+    }
+    .privacy-comparison-intro {
+      font-size: 13px; color: var(--ink-soft); line-height: 1.6;
+      margin: 0 0 18px;
+    }
+    .privacy-comparison-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+      background: var(--border); border: 1px solid var(--border); border-radius: 8px;
+      overflow: hidden;
+    }
+    .privacy-comparison-col { background: var(--paper); padding: 16px 18px; }
+    .privacy-comparison-col h3 {
+      font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+      margin: 0 0 10px;
+    }
+    .privacy-comparison-col.worker h3 { color: var(--ink-soft); }
+    .privacy-comparison-col.lender h3 { color: var(--accent-dark); }
+    .privacy-comparison-col ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink); line-height: 1.9; }
+    .privacy-comparison-note {
+      font-size: 11.5px; color: var(--ink-faint); line-height: 1.6; font-style: italic;
+      margin: 16px 0 0;
+    }
     .llm-status-indicator {
       display: flex; align-items: center; gap: 8px;
       background: var(--surface-alt); color: var(--ink-soft);
@@ -203,6 +230,35 @@
 
   <div class="iframe-container" id="iframe-container">
     <iframe id="passport-frame"></iframe>
+  </div>
+</div>
+
+<div class="privacy-comparison-section">
+  <div class="privacy-comparison-card">
+    <p class="section-title">Privacy by Design</p>
+    <p class="privacy-comparison-intro">The lender view above never receives the worker's raw identity or transaction-level data - only a derived, redacted signal. Illustrative of the redaction the Privacy layer performs on every request:</p>
+    <div class="privacy-comparison-grid">
+      <div class="privacy-comparison-col worker">
+        <h3>Worker data</h3>
+        <ul>
+          <li>Name</li>
+          <li>Phone</li>
+          <li>Payment history</li>
+          <li>Employer info</li>
+        </ul>
+      </div>
+      <div class="privacy-comparison-col lender">
+        <h3>Lender sees</h3>
+        <ul>
+          <li>ISI score</li>
+          <li>Income stability</li>
+          <li>Risk level</li>
+          <li>Income trend</li>
+          <li>Verified payment history</li>
+        </ul>
+      </div>
+    </div>
+    <p class="privacy-comparison-note">Simplified for illustration - not live data for a specific worker. See the real redaction logic in <code>src/privacy/redactPassport.js</code>.</p>
   </div>
 </div>
 

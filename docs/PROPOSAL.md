@@ -69,6 +69,8 @@ Blue = deterministic. Yellow = AI-assisted. **Exactly one node in this diagram i
 
 ## 4. Razorpay Integration — What We Tried, What Actually Worked
 
+> **Razorpay is not just our payment gateway - it is the trusted financial event layer from which KamaiPehchan builds financial identity. Every credit signal in this system originates from a Razorpay-verified transaction; nothing is self-reported by the worker.**
+
 This section is written as a build log rather than a design claim, because the original design did not survive contact with the live API.
 
 ### 4a. Smart Collect: attempted, blocked, documented
@@ -206,7 +208,28 @@ Built entirely on free tiers. No payment method is attached to any service, and 
 
 ---
 
-## 11. Real-World Path Forward
+## 11. What We Proved / What We Didn't Claim
+
+**Proved, live, against real systems - not simulated, not theorized:**
+- A real Razorpay payment
+- Real webhook processing (`payment.captured` + `payment_link.paid`, HMAC-verified, deduplicated)
+- A real Payment Link flow (worker registration → employer rail creation → real payment → real webhook)
+- Real Gemini classification (confirmed genuine, not the safety fallback, by latency and by a real `429` quota response - Section 8)
+- The fraud/anomaly detection pipeline (round-number amounts, uniform intervals, self-payment checks)
+- Credit Passport generation from confirmed transactions
+- Privacy redaction (`?view=lender` vs `?view=worker`)
+- Live deployment on Railway, verified against the deployed instance, not just localhost
+
+**Explicitly not claimed:**
+- Smart Collect - blocked by a real account-tier restriction (Individual-MCC), not a code defect (Section 4a)
+- Real SMS delivery - Twilio remains on its simulated-log fallback; credentials were deliberately never configured (Section 13)
+- A full LLM diagnostic - Gemini's free-tier cap (20 requests/day) limited how much of the 40% result could be root-caused in the time available (Section 8)
+
+Same posture as the rest of this document: named limits, not hidden ones.
+
+---
+
+## 12. Real-World Path Forward
 
 Deliberately scoped to income verification. NBFC integration and lending compliance are **out of scope and mapped, not claimed**.
 
@@ -217,7 +240,7 @@ This keeps the claim honest: **KamaiPehchan proves income can be structured and 
 
 ---
 
-## 12. Hard Questions
+## 13. Hard Questions
 
 **Where is AI actually used?**
 One node in the entire pipeline: classifying ambiguous transactions. Scoring is pure deterministic math. Attribution is guaranteed by the payment rail.
