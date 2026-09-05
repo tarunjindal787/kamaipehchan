@@ -2,6 +2,9 @@
 
 KamaiPehchan is a financial identity engine for multi-employer informal workers - deterministic financial rules are the source of truth for every credit decision; AI only resolves the ambiguous minority of transactions it cannot classify with certainty.
 
+## Live Demo
+🚀 **Production URL:** [https://kamaipehchan-production.up.railway.app/](https://kamaipehchan-production.up.railway.app/)
+
 📄 **[Read the Full Project Proposal](docs/PROPOSAL.md)** - problem, architecture, verified findings, honest benchmarks, and judge Q&A.
 
 ## Problem
